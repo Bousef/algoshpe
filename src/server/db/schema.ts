@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
+import { index, pgTableCreator, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
 /**
@@ -10,6 +10,7 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `algoshpe_${name}`);
 
+/*
 export const posts = createTable(
   "post",
   (d) => ({
@@ -50,59 +51,176 @@ export const users = createTable("user", (d) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
-}));
+}));*/
 
-export const accounts = createTable(
-  "account",
+//--------------------  Tables --------------------
+
+//student table
+export const students = createTable(
+  "student",
   (d) => ({
-    userId: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
-    provider: d.varchar({ length: 255 }).notNull(),
-    providerAccountId: d.varchar({ length: 255 }).notNull(),
-    refresh_token: d.text(),
-    access_token: d.text(),
-    expires_at: d.integer(),
-    token_type: d.varchar({ length: 255 }),
-    scope: d.varchar({ length: 255 }),
-    id_token: d.text(),
-    session_state: d.varchar({ length: 255 }),
-  }),
-  (t) => [
-    primaryKey({ columns: [t.provider, t.providerAccountId] }),
-    index("account_user_id_idx").on(t.userId),
-  ]
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    ucf_id: d.integer().unique().notNull(),
+    first_name: d.varchar({ length: 50 }),
+    last_name: d.varchar({length: 50}),
+    username: d.varchar({length: 50}).unique().notNull(),
+    email: d.varchar({length: 50}).unique().notNull(),
+    password: d.varchar({length: 50}).notNull(),
+    attendance: d.integer(), 
+    algoshpe_points: d.integer(),
+    // assignments_completed: d.integer() 
+  }
+));
+
+//admin table
+export const admins = createTable(
+  "admin",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    username: d.varchar({length: 50}).unique().notNull(),
+    email: d.varchar({length: 50}).unique().notNull(),
+    password: d.varchar({length: 50}).notNull(),
+  }
+));
+
+//assignments table
+export const assignments = createTable(
+  "assignment",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    title: d.varchar({length: 100}).notNull(),
+    description: d.text(), // long strings
+    due_date: d.date()
+  })
 );
 
-export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, { fields: [accounts.userId], references: [users.id] }),
-}));
+//submissions table
+export const submissions = createTable(
+    "submission",
+    (d) => ({
+        id: uuid("id").primaryKey().defaultRandom(),
 
-export const sessions = createTable(
-  "session",
+        studentId: uuid("student_id")
+        .notNull()
+        .references(() => students.id),
+    
+        assignmentId: uuid("assignment_id")
+        .notNull()
+        .references(() => assignments.id),
+    
+        code: text("code").notNull(),
+        output: text("output").notNull(),
+    
+        status: text("status").notNull(), 
+    
+        submittedAt: timestamp("submitted_at").defaultNow(),
+        
+    })
+)
+
+//comments table
+export const comments = createTable(
+  "comment",
   (d) => ({
-    sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
-    userId: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
-  }),
-  (t) => [index("t_user_id_idx").on(t.userId)]
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+
+    studentId: d.uuid("student_id")
+    .notNull()
+    .references(() => students.id),
+
+    assignmentId: d.uuid("assignment_id")
+        .notNull()
+        .references(() => assignments.id),
+    
+    adminId: d.integer().references(() => admins.id),
+
+    is_private: d.boolean(), //true or false based on if student wants to communicate only to admins
+    meessage: d.text(),
+    created_at: d.timestamp()
+  })
 );
 
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+//notes table 
+// export const notes = createTable(
+//   "note",
+//   (d) => ({
+//     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+//     title: d.varchar({ length: 100 }).notNull(),
+//     content: d.text().notNull(), 
+//     adminId: d.integer("admin_id").notNull().references(() => admins.id),
+//     created_at: d.timestamp("created_at").defaultNow(),
+//   })
+// );
+
+
+//materials table 
+export const materials = createTable(
+  "material",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    title: d.varchar({length: 100}).notNull(),
+    file_url: d.varchar({ length: 255 }), // Column for storing file URL
+    uploaded: d.timestamp()
+  })
+);
+
+// --------------------  Relations --------------------
+
+//Admin Relations - assingments, comments, upload material
+export const adminsRelations = relations(admins, ({ many }) => ({
+  assignments: many(assignments),
+  comments: many(comments),
+  materials: many(materials)
 }));
 
-export const verificationTokens = createTable(
-  "verification_token",
-  (d) => ({
-    identifier: d.varchar({ length: 255 }).notNull(),
-    token: d.varchar({ length: 255 }).notNull(),
-    expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+//Student Relations - submissions, comments, notes
+export const studentRelations = relations(students, ({ many }) => ({
+  submissions: many(submissions),
+  comments: many(comments)
+ // notes: many(notes)
+}));
+
+//Submissions - single submission is related to a single student, single submission is related to a single assignment
+export const submissionsRelations = relations(submissions, ({ one }) => ({
+  student: one(students, {
+    fields: [submissions.studentId], 
+    references: [students.id]
   }),
-  (t) => [primaryKey({ columns: [t.identifier, t.token] })]
-);
+  assignment: one(assignments, {
+    fields: [submissions.assignmentId], 
+    references: [assignments.id]
+  })
+}));
+
+//Assignment - submission, comments
+export const assignmentsRelations = relations(assignments, ({ many }) => ({
+  submissions: many(submissions),
+  comments: many(comments),
+}));
+
+//Comments - 1 student, 1 assignment, 1 admin
+export const commentsRelations = relations(comments, ({ one }) => ({
+  student: one(students, {
+    fields: [comments.studentId],
+    references: [students.id],
+  }),
+  assignment: one(assignments, {
+    fields: [comments.assignmentId],
+    references: [assignments.id],
+  }),
+  admin: one(admins, {
+    fields: [comments.adminId],
+    references: [admins.id],
+  }),
+}));
+
+// //Notes -
+// export const notesRelations = relations(notes, ({ one }) => ({
+//   admin: one(admins, {
+//     fields: [notes.adminId],
+//     references: [admins.id],
+//   }),
+// }));
+
+
+
