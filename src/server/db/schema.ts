@@ -62,61 +62,58 @@ export const students = createTable(
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     ucf_id: d.integer().unique().notNull(),
     first_name: d.varchar({ length: 50 }),
-    last_name: d.varchar({length: 50}),
-    username: d.varchar({length: 50}).unique().notNull(),
-    email: d.varchar({length: 50}).unique().notNull(),
-    password: d.varchar({length: 50}).notNull(),
-    attendance: d.integer(), 
+    last_name: d.varchar({ length: 50 }),
+    username: d.varchar({ length: 50 }).unique().notNull(),
+    email: d.varchar({ length: 50 }).unique().notNull(),
+    password: d.varchar({ length: 50 }).notNull(),
+    attendance: d.integer(),
     algoshpe_points: d.integer(),
-    // assignments_completed: d.integer() 
-  }
-));
+  })
+);
 
 //admin table
 export const admins = createTable(
   "admin",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    username: d.varchar({length: 50}).unique().notNull(),
-    email: d.varchar({length: 50}).unique().notNull(),
-    password: d.varchar({length: 50}).notNull(),
-  }
-));
-
+    username: d.varchar({ length: 50 }).unique().notNull(),
+    email: d.varchar({ length: 50 }).unique().notNull(),
+    password: d.varchar({ length: 50 }).notNull(),
+  })
+);
 //assignments table
 export const assignments = createTable(
   "assignment",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    title: d.varchar({length: 100}).notNull(),
-    description: d.text(), // long strings
-    due_date: d.date()
+    title: d.varchar({ length: 100 }).notNull(),
+    description: d.text(),
+    due_date: d.date(),
   })
 );
 
+
 //submissions table
 export const submissions = createTable(
-    "submission",
-    (d) => ({
-        id: uuid("id").primaryKey().defaultRandom(),
+  "submission",
+  (d) => ({
+    id: uuid("id").primaryKey().defaultRandom(),
 
-        studentId: uuid("student_id")
-        .notNull()
-        .references(() => students.id),
-    
-        assignmentId: uuid("assignment_id")
-        .notNull()
-        .references(() => assignments.id),
-    
-        code: text("code").notNull(),
-        output: text("output").notNull(),
-    
-        status: text("status").notNull(), 
-    
-        submittedAt: timestamp("submitted_at").defaultNow(),
-        
-    })
-)
+    studentId: d.integer("student_id")
+      .notNull()
+      .references(() => students.id),
+
+    assignmentId: d.integer("assignment_id")
+      .notNull()
+      .references(() => assignments.id),
+
+    code: text("code").notNull(),
+    output: text("output").notNull(),
+    status: text("status").notNull(),
+    submittedAt: timestamp("submitted_at").defaultNow(),
+  })
+);
+
 
 //comments table
 export const comments = createTable(
@@ -124,19 +121,20 @@ export const comments = createTable(
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
 
-    studentId: d.uuid("student_id")
-    .notNull()
-    .references(() => students.id),
+    studentId: d.integer("student_id")
+      .notNull()
+      .references(() => students.id),
 
-    assignmentId: d.uuid("assignment_id")
-        .notNull()
-        .references(() => assignments.id),
-    
-    adminId: d.integer().references(() => admins.id),
+    assignmentId: d.integer("assignment_id")
+      .notNull()
+      .references(() => assignments.id),
 
-    is_private: d.boolean(), //true or false based on if student wants to communicate only to admins
-    meessage: d.text(),
-    created_at: d.timestamp()
+    adminId: d.integer("admin_id")
+      .references(() => admins.id), // optional
+
+    is_private: d.boolean(),
+    message: d.text(),
+    created_at: d.timestamp(),
   })
 );
 
