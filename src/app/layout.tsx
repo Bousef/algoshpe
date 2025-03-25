@@ -1,7 +1,7 @@
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Montserrat } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -16,14 +16,18 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['300', '400', '600'], // add the weights you want
+  variable: '--font-montserrat',
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable}`}>
-      <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
-      </body>
-    </html>
+    <html lang="en" className={montserrat.variable}>
+    <body className="font-sans">{children}</body>
+  </html>
   );
 }
