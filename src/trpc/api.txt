@@ -1,0 +1,115 @@
+
+Students:
+getStudent [ID]
+getAllStudents [paging needed]
+createStudent
+updateStudent [ID]
+deleteStudent [ID]
+
+Admins:
+createAdmin
+updateAdmin [ID]
+deleteAdmin [ID]
+
+Assignments:
+getAssignment [ID]
+getAllAssignments [paging needed]
+createAssignment
+updateAssignment [ID]
+deleteAssignment [ID]
+
+Submissions:
+getSubmission [ID]
+getAllSubmissions [paging needed]
+getSubmissionsByStudent [ID]
+createSubmission
+updateSubmission [ID]
+deleteSubmission [ID]
+
+Comments:
+getComment [ID]
+getAllComments
+createComment
+updateComment [ID]
+deleteComment [ID]
+
+Materials:
+getMaterial [ID]
+getAllMaterials
+uploadMaterial 
+deleteMaterial [ID]
+
+⸻
+
+🚀 Students API (/students)
+
+Action	Method	URL	Notes
+Get student by ID	GET	/api/students/:id	Fetch a single student
+Get all students	GET	/api/students?page={n}	Supports pagination
+Create student	POST	/api/students	Add a new student
+Update student	PUT	/api/students/:id	Modify student details
+Delete student	DELETE	/api/students/:id	Remove student
+
+
+
+⸻
+
+🛠 Admins API (/admins)
+
+Action	Method	URL	Notes
+Create admin	POST	/api/admins	Add a new admin
+Update admin	PUT	/api/admins/:id	Modify admin details
+Delete admin	DELETE	/api/admins/:id	Remove admin
+
+
+
+⸻
+
+📚 Assignments API (/assignments)
+
+Action	Method	URL	Notes
+Get assignment by ID	GET	/api/assignments/:id	Fetch a single assignment
+Get all assignments	GET	/api/assignments?page={n}	Supports pagination
+Create assignment	POST	/api/assignments	Add a new assignment
+Update assignment	PUT	/api/assignments/:id	Modify assignment details
+Delete assignment	DELETE	/api/assignments/:id	Remove assignment
+
+
+
+⸻
+
+📤 Submissions API (/submissions)
+
+Action	Method	URL	Notes
+Get submission by ID	GET	/api/submissions/:id	Fetch a single submission
+Get all submissions	GET	/api/submissions?page={n}	Supports pagination
+Get submissions by student	GET	/api/submissions/student/:id	Get submissions by a specific student
+Create submission	POST	/api/submissions	Submit an assignment
+Update submission	PUT	/api/submissions/:id	Modify submission details
+Delete submission	DELETE	/api/submissions/:id	Remove submission
+
+
+
+⸻
+
+💬 Comments API (/comments)
+
+Action	Method	URL	Notes
+Get comment by ID	GET	/api/comments/:id	Fetch a single comment
+Get all comments	GET	/api/comments	Fetch all comments (no pagination needed)
+Create comment	POST	/api/comments	Add a new comment
+Update comment	PUT	/api/comments/:id	Modify comment details
+Delete comment	DELETE	/api/comments/:id	Remove comment
+
+
+
+⸻
+
+📂 Materials API (/materials)
+
+Action	Method	URL	Notes
+Get material by ID	GET	/api/materials/:id	Fetch a single material
+Get all materials	GET	/api/materials	Fetch all materials
+Upload material	POST	/api/materials	Upload a new material
+Delete material	DELETE	/api/materials/:id	Remove material
+
