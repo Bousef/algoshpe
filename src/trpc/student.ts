@@ -38,8 +38,8 @@ export const studentRouter = createTRPCRouter({
         throw new Error("Error: Username already exists");
       }
 
-      const hashedPassword = await bcrypt.hash(input.password, 10);
-
+      const hashedPassword = await bcrypt.hash(input.password.slice(0, 50), 10);
+      
       const existingEmail = await db
         .select()
         .from(students)
