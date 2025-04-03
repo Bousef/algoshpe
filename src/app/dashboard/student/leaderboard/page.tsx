@@ -1,27 +1,44 @@
 'use client';
 
+import { useState } from 'react';
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Montserrat } from 'next/font/google';
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '700'] });
 
-export default function Page() {
-  const router = useRouter();
+// Sample student data (unsorted initially)
+const students = [
+  { name: 'Catalina', points: 120, assignmentsCompleted: 10, classesAttended: 8 },
+  { name: 'Yousef', points: 110, assignmentsCompleted: 9, classesAttended: 9 },
+  { name: 'Rafi', points: 95, assignmentsCompleted: 8, classesAttended: 7 },
+];
 
-  const handleAssignment= () => router.push('/dashboard/student/assignment');
+export default function Leaderboard() {
+  const router = useRouter();
+  const [open, setOpen] = useState<string | null>(null);
+
+  const toggleOpen = (name: string) => {
+    setOpen((prev) => (prev === name ? null : name));
+  };
+
+  const handleAssignment = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
   const handleResources = () => router.push('/dashboard/student/resources');
   const handleLeadership = () => router.push('/dashboard/student/leaderboard');
   const handleLogOut = () => router.push('/');
 
+  // Ensure students are always sorted by points in descending order
+  const sortedStudents = students
+    .slice() // Create a copy to avoid mutating the original array
+    .sort((a, b) => b.points - a.points);
+
   return (
     <div className={montserrat.className}>
       <div className="bg-[#CAD2C5] min-h-screen">
-        {/* Header Section */}
+        {/* Header */}
         <header className="bg-[#354F52] p-2">
           <div className="flex justify-between items-center w-full px-6">
-            {/* Logo on the left */}
             <div className="flex items-center">
               <Image
                 src="/algoshpelogo.png"
@@ -31,8 +48,6 @@ export default function Page() {
                 className="rounded-lg w-24 h-auto"
               />
             </div>
-
-            {/* Navigation links on the right */}
             <div className="flex gap-6">
               <div onClick={handleAssignment} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Assignments
@@ -53,40 +68,29 @@ export default function Page() {
           </div>
         </header>
 
-        {/* Page Content */}
-        <div className="px-4 py-8">
-          <h1 className="text-3xl text-white font-semibold mb-8">Assignments Overview</h1>
-          
-          {/* Main Content: Divided into 4 sections */}
-          <div className="flex space-x-4 mb-8"> {/* Flex container for 4 parts */}
-            {/* Past Assignments */}
-            <div className="flex-1 bg-[#A1B0A6] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Past Assignments</h2>
-              {/* Add your past assignments content here */}
-              <p>Content for past assignments...</p>
+        {/* Leaderboard Section */}
+        <div className="pt-8 px-4 flex flex-col items-center overflow-y-auto max-h-[calc(100vh-100px)] w-full">
+          {sortedStudents.map((student, index) => (
+            <div key={student.name} className="bg-white shadow-md rounded-xl px-6 py-4 mb-4 w-full max-w-md">
+              <button
+                onClick={() => toggleOpen(student.name)}
+                className="flex justify-between items-center w-full text-left"
+              >
+                <span className="text-xl font-semibold text-[#354F52]">
+                  {student.name}
+                </span>
+                <span className="text-gray-500">{open === student.name ? '▲' : '▼'}</span>
+              </button>
+              {open === student.name && (
+                <div className="mt-4 text-gray-800 space-y-1">
+                  <p><strong>Position:</strong> {index + 1}</p>
+                  <p><strong>Points:</strong> {student.points}</p>
+                  <p><strong>Assignments Completed:</strong> {student.assignmentsCompleted}</p>
+                  <p><strong>Classes Attended:</strong> {student.classesAttended}</p>
+                </div>
+              )}
             </div>
-
-            {/* Current Assignments */}
-            <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Current Assignments</h2>
-              {/* Add your current assignments content here */}
-              <p>Content for current assignments...</p>
-            </div>
-
-            {/* Upcoming Assignments */}
-            <div className="flex-1 bg-[#354F52] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Upcoming Assignments</h2>
-              {/* Add your upcoming assignments content here */}
-              <p>Content for upcoming assignments...</p>
-            </div>
-
-            {/* Pie Chart */}
-            <div className="flex-1 bg-[#8B9A8B] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Pie Chart</h2>
-              {/* Add your pie chart component here */}
-              <p>Pie chart goes here...</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

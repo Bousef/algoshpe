@@ -9,11 +9,11 @@ const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '700'
 export default function Header() {
   const router = useRouter();
 
-  const handleAssignments = () => router.push('/Assignments');
-  const handleQandA = () => router.push('/Q & A');
+  const handleAssignments = () => router.push('/dashboard/student/assignment');
+  const handleQandA = () => router.push('/qa');
   const handleResources = () => router.push('/Resources');
-  const handleLeadership = () => router.push('/Leadership');
-  const handleLogOut = () => router.push('/Log Out');
+  const handleLeadership = () => router.push('/leaderboard');
+  const handleLogOut = () => router.push('/logout');
 
   return (
     <div className={montserrat.className}>
