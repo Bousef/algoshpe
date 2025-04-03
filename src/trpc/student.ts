@@ -1,3 +1,12 @@
+/*
+Students:
+getStudent [ID]
+getAllStudents [paging needed]
+createStudent
+updateStudent [ID]
+deleteStudent [ID]
+*/
+
 import { publicProcedure, createTRPCRouter } from "src/server/api/trpc";
 import { db } from "src/server/db";
 import { students } from "src/server/db/schema";
@@ -5,11 +14,12 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 
 export const studentRouter = createTRPCRouter({
-  // ✅ Create a new student
+
+  //create student
   createStudent: publicProcedure
     .input(
       z.object({
-        ucf_id: z.number(),  // Change this to z.number() to match your database schema
+        ucf_id: z.number(),
         first_name: z.string(),
         last_name: z.string().optional(),
         username: z.string(),
@@ -27,7 +37,7 @@ export const studentRouter = createTRPCRouter({
       return newStudent[0];
     }),
 
-  // ✅ Get all students with pagination
+  //get all students
   getStudents: publicProcedure
     .input(z.object({ page: z.number().optional() }).optional())
     .query(async ({ input }) => {
@@ -38,18 +48,18 @@ export const studentRouter = createTRPCRouter({
       return await db.select().from(students).limit(limit).offset(offset);
     }),
 
-  // ✅ Get a student by ID
+  //get one student by id
   getStudentById: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       const student = await db.select().from(students).where(eq(students.id, input.id));
 
-      if (student.length === 0) throw new Error("Student not found");
+      if (student.length === 0) throw new Error("Error: Student Not Found");
 
       return student[0];
     }),
 
-  // ✅ Update student details
+  //update student 
   updateStudent: publicProcedure
     .input(
       z.object({
@@ -69,18 +79,18 @@ export const studentRouter = createTRPCRouter({
         .where(eq(students.id, input.id))
         .returning();
 
-      if (updatedStudent.length === 0) throw new Error("Student not found");
+      if (updatedStudent.length === 0) throw new Error("Error: Student Not Found");
 
       return updatedStudent[0];
     }),
 
-  // ✅ Delete a student by ID
+  //delete student
   deleteStudent: publicProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       const deletedStudent = await db.delete(students).where(eq(students.id, input.id)).returning();
 
-      if (deletedStudent.length === 0) throw new Error("Student not found");
+      if (deletedStudent.length === 0) throw new Error("Error: Student Not Found");
 
       return { message: "Student deleted successfully", student: deletedStudent[0] };
     }),

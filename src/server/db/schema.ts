@@ -54,7 +54,7 @@ export const assignments = createTable(
 export const submissions = createTable(
   "submission",
   (d) => ({
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
 
     studentId: d.integer("student_id")
       .notNull()

@@ -1,31 +1,4 @@
 
-Students:
-getStudent [ID]
-getAllStudents [paging needed]
-createStudent
-updateStudent [ID]
-deleteStudent [ID]
-
-Admins:
-createAdmin
-updateAdmin [ID]
-deleteAdmin [ID]
-
-Assignments:
-getAssignment [ID]
-getAllAssignments [paging needed]
-createAssignment
-updateAssignment [ID]
-deleteAssignment [ID]
-
-Submissions:
-getSubmission [ID]
-getAllSubmissions [paging needed]
-getSubmissionsByStudent [ID]
-createSubmission
-updateSubmission [ID]
-deleteSubmission [ID]
-
 Comments:
 getComment [ID]
 getAllComments
