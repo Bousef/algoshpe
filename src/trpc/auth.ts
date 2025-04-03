@@ -9,11 +9,19 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = "ALGOSHPE2526";  
 
 //generates jwt token - 5 hours
-const generateToken = (user: any) => {
-  return jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_SECRET, {
-    expiresIn: '5h',
-  });
-};
+const generateToken = (user: any, role: 'Admin' | 'Student') => {
+    return jwt.sign(
+      {
+        id: user.id,
+        username: user.username,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: '5h',
+      }
+    );
+  };
+  
 
 export const authRouter = createTRPCRouter({
  
@@ -38,7 +46,8 @@ export const authRouter = createTRPCRouter({
             if (!isPasswordValid) throw new Error("Error: Invalid Password");
         
             
-            const token = generateToken(admin[0]);
+            //For Admin
+            const token = generateToken(admin[0], 'Admin');
             return { token, user: admin[0], role: 'Admin', error: ' ' };
         }
 
@@ -51,8 +60,10 @@ export const authRouter = createTRPCRouter({
             const isPasswordValid = await bcrypt.compare(input.password, studentPassword);
             if (!isPasswordValid) throw new Error("Error: Invalid password");
 
-            const token = generateToken(student[0]);
+            // For Student
+            const token = generateToken(student[0], 'Student');
             return { token, user: student[0], role: 'Student', error : ' '};
+
         }
 
         throw new Error("Error: User Not Found"); //dne!

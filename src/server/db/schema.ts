@@ -18,11 +18,11 @@ export const students = createTable(
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     ucf_id: d.integer().unique().notNull(),
-    first_name: d.varchar({ length: 50 }),
-    last_name: d.varchar({ length: 50 }),
-    username: d.varchar({ length: 50 }).unique().notNull(),
-    email: d.varchar({ length: 50 }).unique().notNull(),
-    password: d.varchar({ length: 50 }).notNull(),
+    first_name: d.varchar({ length: 100 }),
+    last_name: d.varchar({ length: 100 }),
+    username: d.varchar({ length: 100 }).unique().notNull(),
+    email: d.varchar({ length: 100 }).unique().notNull(),
+    password: d.varchar({ length: 100 }).notNull(),
     attendance: d.integer(),
     algoshpe_points: d.integer(),
   })
@@ -33,9 +33,9 @@ export const admins = createTable(
   "admin",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    username: d.varchar({ length: 50 }).unique().notNull(),
-    email: d.varchar({ length: 50 }).unique().notNull(),
-    password: d.varchar({ length: 50 }).notNull(),
+    username: d.varchar({ length: 100 }).unique().notNull(),
+    email: d.varchar({ length: 100 }).unique().notNull(),
+    password: d.varchar({ length: 100 }).notNull(),
   })
 );
 //assignments table

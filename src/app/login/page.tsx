@@ -3,21 +3,36 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { api } from "~/trpc/react";
 
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState(""); // 🔄 changed from email
   const [password, setPassword] = useState("");
+  const loginMutation = api.auth.login.useMutation();
 
-  //handles login(api is going to go here)
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    try {
+      const response = await loginMutation.mutateAsync({
+        username: username, // 🔄 updated here
+        password: password,
+      });
+      
+      localStorage.setItem("token", response.token);
 
-    console.log("Logging in with", { email, password });
+      if (response?.role === 'Admin') {
+        router.push('/dashboard/admin');
+      } else if (response?.role === 'Student') {
+        router.push('/dashboard/student');
+      } else {
+        alert("Wrong Info");
+      }
 
-    router.push("/dashboard");
+    } catch (err: any) {
+      alert(err.message || "Login failed");
+    }
   };
 
-  //handles clicking the signup
   const handleSignup = () => {
     router.push('/signup');
   };
@@ -40,10 +55,10 @@ export default function Login() {
           <h2 className="text-3xl font-bold">Login to AlgoSHPE</h2>
 
           <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Username" // 🔄 updated label
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full p-3 rounded-lg border border-black text-white"
           />
 
