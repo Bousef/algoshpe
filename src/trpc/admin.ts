@@ -10,24 +10,53 @@ import { db } from "src/server/db";
 import { admins } from "src/server/db/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";  
 
 export const adminRouter = createTRPCRouter({
 
-  //create admin
+  // create admin
   createAdmin: publicProcedure
     .input(
       z.object({
-        username: z.string(),
-        email: z.string().email(),
-        password: z.string(),
+        username: z.string(),  
+        email: z.string().email(), 
+        password: z.string(),  
       })
     )
     .mutation(async ({ input }) => {
-      const newAdmin = await db.insert(admins).values({
-        ...input
-      }).returning();
+      // Check if the username already exists
+      const existingAdminByUsername = await db
+        .select()
+        .from(admins)
+        .where(eq(admins.username, input.username));
 
-      return newAdmin[0];
+      if (existingAdminByUsername.length > 0) {
+        throw new Error("Error: Username already exists");
+      }
+
+      // Check if the email already exists
+      const existingAdminByEmail = await db
+        .select()
+        .from(admins)
+        .where(eq(admins.email, input.email));
+
+      if (existingAdminByEmail.length > 0) {
+        throw new Error("Error: Email already in use");
+      }
+
+
+      const hashedPassword = await bcrypt.hash(input.password, 10);
+
+      const newAdmin = await db
+        .insert(admins)
+        .values({
+          username: input.username,
+          email: input.email,
+          password: hashedPassword,
+        })
+        .returning();
+
+      return newAdmin[0];  
     }),
 
   //update admin 
