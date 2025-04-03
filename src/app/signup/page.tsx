@@ -31,7 +31,7 @@ export default function SignUp() {
       });
 
       console.log("Signed up:", newStudent);
-      router.push("/dashboard/student");
+      router.push("/login");
     } catch (error: any) {
       console.error("Signup failed:", error);
       alert(error.message || "Signup failed");
