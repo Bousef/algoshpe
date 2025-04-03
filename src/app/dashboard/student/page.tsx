@@ -2,47 +2,85 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Montserrat } from 'next/font/google';
 
-export default function StudentDashboard() {
+const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '700'] });
+
+export default function Header() {
   const router = useRouter();
 
-  const handleLogin = () => {
-    router.push('/login');
+  const handleAbout = () => {
+    router.push('/Assignments'); // Assignments page
   };
 
-  const handleSignup = () => {
-    router.push('/signup');
+  const handleQandA = () => {
+    router.push('/Q & A'); // Q & A page
+  };
+
+  const handleResources = () => {
+    router.push('/Resources'); // Resources page
+  };
+
+  const handleLeadership = () => {
+    router.push('/Leadership'); // Leadership page
+  };
+
+  const handleLogOut = () => {
+    router.push('/Log Out'); // Log Out page
   };
 
   return (
-    <div className="min-h-screen bg-[#CAD2C5] text-white flex items-center justify-center">
-      <div className="flex flex-col items-center text-center px-6 py-6 gap-8">
-        {/* Logo Image */}
-        <Image
-          src="/logo.png"
-          alt="AlgoSHPE Logo"
-          width={1000}
-          height={1000}
-          className="rounded-lg"
-          priority
-        />
+    <div className={montserrat.className}>
+    <div className="bg-[#CAD2C5] min-h-screen">
+      <header className="bg-[#354F52]">
+        <div className="flex justify-between items-center max-w-7xl mx-auto ">
+          {/* Logo on the left */}
+          <div className="flex items-center">
+            <Image
+              src="/algoshpelogo.png"
+              alt="AlgoSHPE Logo"
+              width={300} 
+              height={300}
+              className="rounded-lg w-24 h-auto"
+            />
+          </div>
 
-        {/* Buttons */}
-        <div className="flex flex-row gap-6">
-          <button
-            onClick={handleLogin}
-            className="text-xl text-white bg-[#354F52] hover:text-blue-100 font-montserrat font-light py-2 px-6 border border-black rounded-lg"
-          >
-            Login
-          </button>
-          <button
-            onClick={handleSignup}
-            className="text-xl text-white bg-[#354F52] hover:text-blue-100 font-montserrat font-light py-2 px-6 border border-black rounded-lg"
-          >
-            Sign Up
-          </button>
+          {/* Navigation links on the right */}
+          <div className="flex gap-6">
+            <div
+              onClick={handleAbout}
+              className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200"
+            >
+              Assignments
+            </div>
+            <div
+              onClick={handleQandA}
+              className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200"
+            >
+              Q & A
+            </div>
+            <div
+              onClick={handleResources}
+              className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200"
+            >
+              Resources
+            </div>
+            <div
+              onClick={handleLeadership}
+              className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200"
+            >
+              Leadership
+            </div>
+            <div
+              onClick={handleLogOut}
+              className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200"
+            >
+              Log Out
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
+    </div>
     </div>
   );
 }
