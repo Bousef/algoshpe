@@ -49,7 +49,7 @@ export const commentRouter = createTRPCRouter({
         return await db.select().from(comments).limit(limit).offset(offset);
     }),
 
-    //get one comment by student ID
+    //get one comment by ID
     getCommentById: publicProcedure
         .input(z.object({ id: z.number() }))
         .query(async ({ input }) => {

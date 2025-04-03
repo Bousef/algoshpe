@@ -1,16 +1,4 @@
 
-Comments:
-getComment [ID]
-getAllComments
-createComment
-updateComment [ID]
-deleteComment [ID]
-
-Materials:
-getMaterial [ID]
-getAllMaterials
-uploadMaterial 
-deleteMaterial [ID]
 
 ⸻
 

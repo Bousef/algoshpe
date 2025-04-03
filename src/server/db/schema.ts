@@ -95,7 +95,7 @@ export const comments = createTable(
   })
 );
 
-//notes table 
+//notes table  - shpe tech committee task!
 // export const notes = createTable(
 //   "note",
 //   (d) => ({

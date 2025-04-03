@@ -12,6 +12,7 @@ import { db } from "src/server/db";
 import { students } from "src/server/db/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";  
 
 export const studentRouter = createTRPCRouter({
 
@@ -28,11 +29,36 @@ export const studentRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      const newStudent = await db.insert(students).values({
+      const existingStudent = await db
+      .select()
+      .from(students)
+      .where(eq(students.username, input.username));
+
+      if (existingStudent.length > 0) {
+        throw new Error("Error: Username already exists");
+      }
+
+      const hashedPassword = await bcrypt.hash(input.password, 10);
+
+      const existingEmail = await db
+        .select()
+        .from(students)
+        .where(eq(students.email, input.email));
+
+      if (existingEmail.length > 0) {
+        throw new Error("Error: Email already in use");
+      }
+
+      // Insert new student with the hashed password
+      const newStudent = await db
+      .insert(students)
+      .values({
         ...input,
+        password: hashedPassword,
         attendance: 0,
         algoshpe_points: 0,
-      }).returning();
+      })
+      .returning();
 
       return newStudent[0];
     }),
