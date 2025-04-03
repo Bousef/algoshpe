@@ -14,50 +14,54 @@ import bcrypt from "bcryptjs";
 
 export const adminRouter = createTRPCRouter({
 
-  // create admin
-  createAdmin: publicProcedure
-    .input(
-      z.object({
-        username: z.string(),  
-        email: z.string().email(), 
-        password: z.string(),  
-      })
-    )
-    .mutation(async ({ input }) => {
-      // Check if the username already exists
-      const existingAdminByUsername = await db
+    checkEmailExists: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input }) => {
+      const existingAdmin = await db
         .select()
         .from(admins)
-        .where(eq(admins.username, input.username));
+        .where(eq(admins.email, input.email))
+        .limit(1); // Limit to 1 to optimize query performance
 
-      if (existingAdminByUsername.length > 0) {
-        throw new Error("Error: Username already exists");
+      if (existingAdmin.length > 0) {
+        return { exists: true }; // Email already exists
       }
 
-      // Check if the email already exists
-      const existingAdminByEmail = await db
-        .select()
-        .from(admins)
-        .where(eq(admins.email, input.email));
-
-      if (existingAdminByEmail.length > 0) {
-        throw new Error("Error: Email already in use");
-      }
-
-
-      const hashedPassword = await bcrypt.hash(input.password, 10);
-
-      const newAdmin = await db
-        .insert(admins)
-        .values({
-          username: input.username,
-          email: input.email,
-          password: hashedPassword,
-        })
-        .returning();
-
-      return newAdmin[0];  
+      return { exists: false }; // Email does not exist
     }),
+
+
+createAdmin: publicProcedure
+.input(
+  z.object({
+    username: z.string(),  
+    email: z.string().email(), 
+    password: z.string(),  
+  })
+)
+.mutation(async ({ input }) => {
+  const existingAdminByEmail = await db
+    .select()
+    .from(admins)
+    .where(eq(admins.email, input.email));
+
+  if (existingAdminByEmail.length > 0) {
+    throw new Error("Error: Email already in use");
+  }
+
+  const hashedPassword = await bcrypt.hash(input.password, 10);
+
+  const newAdmin = await db
+    .insert(admins)
+    .values({
+      username: input.username,
+      email: input.email,
+      password: hashedPassword,
+    })
+    .returning();
+
+  return newAdmin[0];  
+}),
 
   //update admin 
   updateAdmin: publicProcedure
