@@ -12,7 +12,7 @@ export default function Page() {
   const handleAssignment= () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
   const handleResources = () => router.push('/dashboard/student/resources');
-  const handleLeadership = () => router.push('/dashboard/student/leaderboard');
+  const handleLeaderboard = () => router.push('/dashboard/student/leaderboard');
   const handleLogOut = () => router.push('/');
 
   return (
@@ -43,8 +43,8 @@ export default function Page() {
               <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Resources
               </div>
-              <div onClick={handleLeadership} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Leadership
+              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Leaderboard
               </div>
               <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Log Out
@@ -55,10 +55,16 @@ export default function Page() {
 
         {/* Page Content */}
         <div className="px-4 py-8">
-          <h1 className="text-3xl text-white font-semibold mb-8">Assignments Overview</h1>
           
           {/* Main Content: Divided into 4 sections */}
           <div className="flex space-x-4 mb-8"> {/* Flex container for 4 parts */}
+               {/* Current Assignments */}
+               <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg">
+              <h2 className="text-2xl font-semibold text-white">Current Assignments</h2>
+              {/* Add your current assignments content here */}
+              <p>curr assignments</p>
+            </div>
+
             {/* Past Assignments */}
             <div className="flex-1 bg-[#A1B0A6] p-6 rounded-lg">
               <h2 className="text-2xl font-semibold text-white">Past Assignments</h2>
@@ -66,20 +72,7 @@ export default function Page() {
               <p>Content for past assignments...</p>
             </div>
 
-            {/* Current Assignments */}
-            <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Current Assignments</h2>
-              {/* Add your current assignments content here */}
-              <p>Content for current assignments...</p>
-            </div>
-
-            {/* Upcoming Assignments */}
-            <div className="flex-1 bg-[#354F52] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Upcoming Assignments</h2>
-              {/* Add your upcoming assignments content here */}
-              <p>Content for upcoming assignments...</p>
-            </div>
-
+         
             {/* Pie Chart */}
             <div className="flex-1 bg-[#8B9A8B] p-6 rounded-lg">
               <h2 className="text-2xl font-semibold text-white">Pie Chart</h2>

@@ -25,7 +25,7 @@ export default function Leaderboard() {
   const handleAssignment = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
   const handleResources = () => router.push('/dashboard/student/resources');
-  const handleLeadership = () => router.push('/dashboard/student/leaderboard');
+  const handleLeaderboard = () => router.push('/dashboard/student/leaderboard');
   const handleLogOut = () => router.push('/');
 
   // Ensure students are always sorted by points in descending order
@@ -58,8 +58,8 @@ export default function Leaderboard() {
               <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Resources
               </div>
-              <div onClick={handleLeadership} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Leadership
+              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Leaderboard
               </div>
               <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Log Out

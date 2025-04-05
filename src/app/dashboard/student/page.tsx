@@ -12,7 +12,7 @@ export default function Header() {
   const handleAssignments = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/qa');
   const handleResources = () => router.push('/Resources');
-  const handleLeadership = () => router.push('/leaderboard');
+  const handleLeaderboard = () => router.push('/leaderboard');
   const handleLogOut = () => router.push('/logout');
 
   return (
@@ -42,8 +42,8 @@ export default function Header() {
               <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Resources
               </div>
-              <div onClick={handleLeadership} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Leadership
+              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Leaderboard
               </div>
               <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Log Out

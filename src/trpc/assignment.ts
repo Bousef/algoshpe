@@ -11,7 +11,7 @@ import { publicProcedure, createTRPCRouter } from "src/server/api/trpc";
 import { db } from "src/server/db";
 import { assignments } from "src/server/db/schema";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export const assignmentRouter = createTRPCRouter({
 
@@ -34,7 +34,39 @@ export const assignmentRouter = createTRPCRouter({
     
         return newAssignment[0];
     }),
+    // Get current assignments (due today or in the future)
+    getCurrAssignments: publicProcedure
+    .input(z.object({ page: z.number().optional() }).optional())
+    .query(async ({ input }) => {
+      const page = input?.page || 1;
+      const limit = 10;
+      const offset = (page - 1) * limit;
 
+      return await db
+        .select()
+        .from(assignments)
+        .where(sql`due_date >= CURRENT_DATE`)
+        .limit(limit)
+        .offset(offset);
+    }),
+
+    // Get past assignments (due date before today)
+    getPastAssignments: publicProcedure
+    .input(z.object({ page: z.number().optional() }).optional())
+    .query(async ({ input }) => {
+      const page = input?.page || 1;
+      const limit = 10;
+      const offset = (page - 1) * limit;
+
+      return await db
+        .select()
+        .from(assignments)
+        .where(sql`due_date < CURRENT_DATE`)
+        .limit(limit)
+        .offset(offset);
+    }),
+  
+  
     //get all Assignments
     getAssignments: publicProcedure
     .input(z.object({ page: z.number().optional() }).optional())
