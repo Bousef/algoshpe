@@ -18,12 +18,16 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       const response = await loginMutation.mutateAsync({
-        username: username, // 🔄 updated here
+        username: username,
         password: password,
       });
-      
+  
       localStorage.setItem("token", response.token);
-
+  
+      if (response.user && response.user.username) {
+        localStorage.setItem("username", response.user.username);
+      }
+  
       if (response?.role === 'Admin') {
         router.push('/dashboard/admin');
       } else if (response?.role === 'Student') {
@@ -31,11 +35,12 @@ export default function Login() {
       } else {
         alert("Wrong Info");
       }
-
+  
     } catch (err: any) {
       alert(err.message || "Login failed");
     }
-  };
+  };  
+  
 
   const handleSignup = () => {
     router.push('/signup');

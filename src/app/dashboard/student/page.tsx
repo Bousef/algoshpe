@@ -10,7 +10,7 @@ export default function Header() {
   const router = useRouter();
 
   const handleAssignments = () => router.push('/dashboard/student/assignment');
-  const handleQandA = () => router.push('/qa');
+  const handleQandA = () => router.push('/dashboard/student/qa');
   const handleResources = () => router.push('/Resources');
   const handleLeaderboard = () => router.push('/leaderboard');
   const handleLogOut = () => router.push('/logout');

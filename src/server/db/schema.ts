@@ -57,7 +57,6 @@ export const submissions = createTable(
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
 
     studentId: d.integer("student_id")
-      .notNull()
       .references(() => students.id),
 
     assignmentId: d.integer("assignment_id")
