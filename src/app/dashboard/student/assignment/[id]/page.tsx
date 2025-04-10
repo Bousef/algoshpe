@@ -33,8 +33,7 @@ export default function AssignmentDetailPage() {
   const handleLogOut = () => router.push('/logout');
 
   const [theme, setTheme] = useState<"vs-dark" | "light">("vs-dark");
-  const [language, setLanguage] = useState<"java" | "python">("python");
-  const [code, setCode] = useState<string>("");
+  const [code, setCode] = useState<string>("print('Hello')");
   const [output, setOutput] = useState<string>("");
 
   const handleSave = () => {
@@ -42,9 +41,15 @@ export default function AssignmentDetailPage() {
     console.log("Code saved:", code);
   };
   
+
+  const runCode = api.python.run.useMutation();
+
   const handleRun = () => {
-    // For now, just simulate code execution output
-    setOutput(`Running ${language.toUpperCase()}...\n\n${code}`);
+    runCode.mutate({ code }, {
+      onSuccess: (data) => {
+        setOutput(data.output); // <-- this should not squiggle
+      },
+    });
   };
 
   if (isLoading || !assignment) return <p className="p-8">Loading...</p>;
@@ -95,37 +100,25 @@ export default function AssignmentDetailPage() {
             </p>
           </div>
 
-          {/* Right Panel - Editor & Output */}
+            {/* Right Panel - Editor & Output */}
             <div className="w-2/3 p-10 flex flex-col gap-4">
             {/* Controls */}
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                <label className="font-medium text-gray-700">Language:</label>
-                <select
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value as "java" | "python")}
-                    className="px-3 py-2 rounded border"
-                >
-                    <option value="python">Python</option>
-                    <option value="java">Java</option>
-                </select>
-                </div>
-
+            <div className="flex justify-end items-center">
                 <div className="flex gap-2">
                 <button
                     onClick={handleRun}
                     className="flex items-center gap-1 px-4 py-2 text-white bg-[#52796F] rounded hover:bg-[#52796F] transition"
-                    >
+                >
                     <Image src="/run2.png" alt="Run" width={18} height={18} />
-                
                 </button>
-                        
+
                 <button
                     onClick={handleSave}
                     className="px-4 py-2 text-white bg-[#52796F] rounded hover:bg-[#52796F] transition"
                 >
                     Submit
                 </button>
+
                 <button
                     onClick={() => setTheme(prev => (prev === "vs-dark" ? "light" : "vs-dark"))}
                     className="px-4 py-2 text-white bg-[#52796F] rounded hover:bg-[#52796F] transition"
@@ -138,7 +131,6 @@ export default function AssignmentDetailPage() {
             {/* Editor */}
             <Editor
                 height="50vh"
-                language={language}
                 value={code}
                 onChange={(value) => setCode(value || "")}
                 theme={theme}

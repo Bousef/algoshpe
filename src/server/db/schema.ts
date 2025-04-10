@@ -46,6 +46,7 @@ export const assignments = createTable(
     title: d.varchar({ length: 100 }).notNull(),
     description: d.text(),
     due_date: d.date(),
+    
   })
 );
 
