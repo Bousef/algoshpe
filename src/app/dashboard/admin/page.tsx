@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const router = useRouter();
-
+  
   const handleLogin = () => {
     router.push('/login');
   };

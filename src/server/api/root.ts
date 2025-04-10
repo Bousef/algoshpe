@@ -4,6 +4,7 @@ import { studentRouter } from "~/trpc/student";
 import { auth } from "../auth";
 import { authRouter } from "~/trpc/auth";
 import { adminRouter } from "~/trpc/admin";
+import { assignmentRouter } from "~/trpc/assignment";
 
 /**
  * This is the primary router for your server.
@@ -14,7 +15,8 @@ export const appRouter = createTRPCRouter({
   post: postRouter,
   student: studentRouter,
   auth: authRouter,
-  admin: adminRouter
+  admin: adminRouter,
+  assignment: assignmentRouter
 });
 
 // export type definition of API

@@ -3,17 +3,42 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Montserrat } from 'next/font/google';
+import { useState, useEffect } from 'react';
+import { api } from "~/trpc/react";
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '700'] });
 
-export default function Page() {
+export default function Assignment() {
   const router = useRouter();
 
+  const handleAbout = () => router.push('/dashboard/student/about');
   const handleAssignment= () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
   const handleResources = () => router.push('/dashboard/student/resources');
   const handleLeaderboard = () => router.push('/dashboard/student/leaderboard');
   const handleLogOut = () => router.push('/');
+
+  type Assignment = {
+    id: number;
+    title: string;
+    description: string | null;
+    due_date: string | null;
+  };
+
+  const [currentAssignments, setCurrentAssignments] = useState<Assignment[]>([]);
+  const [pastAssignments, setPastAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const { data: currData, isLoading: currLoading } = api.assignment.getCurrAssignments.useQuery();
+  const { data: pastData, isLoading: pastLoading } = api.assignment.getPastAssignments.useQuery();
+
+  useEffect(() => {
+    if (currData) setCurrentAssignments(currData);
+    if (pastData) setPastAssignments(pastData);
+  
+    if (!currLoading && !pastLoading) setLoading(false);
+  }, [currData, pastData, currLoading, pastLoading]);
+
 
   return (
     <div className={montserrat.className}>
@@ -34,6 +59,9 @@ export default function Page() {
 
             {/* Navigation links on the right */}
             <div className="flex gap-6">
+              <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                About
+              </div>
               <div onClick={handleAssignment} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Assignments
               </div>
@@ -55,30 +83,49 @@ export default function Page() {
 
         {/* Page Content */}
         <div className="px-4 py-8">
-          
+
           {/* Main Content: Divided into 4 sections */}
-          <div className="flex space-x-4 mb-8"> {/* Flex container for 4 parts */}
-               {/* Current Assignments */}
-               <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Current Assignments</h2>
-              {/* Add your current assignments content here */}
-              <p>curr assignments</p>
+          <div className="flex space-x-4 mb-8">
+          {/* Current Assignments */}
+
+            <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg text-white">
+              <h2 className="text-2xl text-center font-semibold mb-2">Current Assignments</h2>
+              {currentAssignments.map((assignment) => (
+                <div
+                key={assignment.id}
+                onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
+                className="mb-4 cursor-pointer p-4 bg-white rounded-lg text-black hover:shadow-lg transition"
+                > 
+                  <h3 className="text-xl font-bold">{assignment.title}</h3>
+                  <p>{assignment.description}</p>
+                  <p className="text-sm text-gray-300">Due: {assignment.due_date}</p>
+                </div>
+              ))}
             </div>
 
             {/* Past Assignments */}
-            <div className="flex-1 bg-[#A1B0A6] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Past Assignments</h2>
-              {/* Add your past assignments content here */}
-              <p>Content for past assignments...</p>
+            <div className="flex-1 bg-[#A1B0A6] p-6 rounded-lg text-white">
+            <h2 className="text-2xl text-center font-semibold text-white">Past Assignments</h2>
+              {pastAssignments.map((assignment) => (
+                <div
+                  key={assignment.id}
+                  onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
+                  className="mb-4 cursor-pointer p-4 bg-white rounded-lg text-black hover:shadow-lg transition"
+                >
+                  <h3 className="text-xl font-bold">{assignment.title}</h3>
+                  <p>{assignment.description}</p>
+                  <p className="text-sm text-gray-600">Due: {assignment.due_date}</p>
+                </div>
+              ))}
             </div>
 
-         
             {/* Pie Chart */}
             <div className="flex-1 bg-[#8B9A8B] p-6 rounded-lg">
-              <h2 className="text-2xl font-semibold text-white">Pie Chart</h2>
+              <h2 className="text-2xl text-center font-semibold text-white">Pie Chart</h2>
               {/* Add your pie chart component here */}
               <p>Pie chart goes here...</p>
             </div>
+            
           </div>
         </div>
       </div>

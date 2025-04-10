@@ -34,6 +34,7 @@ export const assignmentRouter = createTRPCRouter({
     
         return newAssignment[0];
     }),
+    
     // Get current assignments (due today or in the future)
     getCurrAssignments: publicProcedure
     .input(z.object({ page: z.number().optional() }).optional())
