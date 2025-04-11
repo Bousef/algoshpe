@@ -46,8 +46,11 @@ export const assignments = createTable(
     title: d.varchar({ length: 100 }).notNull(),
     description: d.text(),
     due_date: d.date(),
-    
+    starter_code: d.text(), // new
+    test_cases: d.text(),   // new (store as JSON string)
+    hints: d.text(),        // new (store as JSON string)
   })
+  
 );
 
 

@@ -13,6 +13,10 @@ export default function AssignmentDetailPage() {
   const router = useRouter();
   const { id } = useParams();
   const [assignmentId, setAssignmentId] = useState<number | null>(null);
+  const [showHints, setShowHints] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [code, setCode] = useState<string>("");
+  const [output, setOutput] = useState<string>("");
 
   useEffect(() => {
     if (typeof id === "string") {
@@ -25,6 +29,45 @@ export default function AssignmentDetailPage() {
     { enabled: !!assignmentId }
   );
 
+  useEffect(() => {
+    if (assignment?.starter_code) {
+      setCode(assignment.starter_code);
+    }
+  }, [assignment]);
+
+  const runCode = api.python.run.useMutation();
+
+  const handleRun = () => {
+    if (!assignment) return;
+
+    const testCases = JSON.parse(assignment.test_cases || "[]");
+    let results: string[] = [];
+
+    const runAllTests = async () => {
+      for (let i = 0; i < testCases.length; i++) {
+        const match = code.match(/def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/);
+        const functionName = match ? match[1] : "unknown_function";
+        const testCode = `${code}\nprint(${functionName}(${testCases[i].input}))`;
+
+        await runCode.mutateAsync({ code: testCode }, {
+          onSuccess: (data) => {
+            const cleanOutput = data.output.trim().replace(/\n/g, "").replace(/\s/g, "");
+            const expectedOutput = testCases[i].output.trim().replace(/\n/g, "").replace(/\s/g, "");
+            const passed = cleanOutput === expectedOutput;
+
+            results.push(
+              `Test ${i + 1}: ${passed ? "✅ Passed" : "❌ Failed"}\nYour Output: ${data.output.trim()}\nExpected: ${testCases[i].output}`
+            );
+          },
+        });
+      }
+
+      setOutput(results.join("\n\n"));
+    };
+
+    runAllTests();
+  };
+
   const handleAbout = () => router.push('/dashboard/student/about');
   const handleAssignments = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
@@ -32,121 +75,124 @@ export default function AssignmentDetailPage() {
   const handleLeaderboard = () => router.push('/leaderboard');
   const handleLogOut = () => router.push('/logout');
 
-  const [theme, setTheme] = useState<"vs-dark" | "light">("vs-dark");
-  const [code, setCode] = useState<string>("print('Hello')");
-  const [output, setOutput] = useState<string>("");
-
-  const handleSave = () => {
-    // Save logic
-    console.log("Code saved:", code);
-  };
-  
-
-  const runCode = api.python.run.useMutation();
-
-  const handleRun = () => {
-    runCode.mutate({ code }, {
-      onSuccess: (data) => {
-        setOutput(data.output); // <-- this should not squiggle
-      },
-    });
-  };
-
   if (isLoading || !assignment) return <p className="p-8">Loading...</p>;
 
   return (
     <div className={montserrat.className}>
       <div className="bg-[#CAD2C5] min-h-screen">
-        {/* Header */}
         <header className="bg-[#354F52] p-2">
           <div className="flex justify-between items-center w-full px-6">
-            <Image
-              src="/algoshpelogo.png"
-              alt="AlgoSHPE Logo"
-              width={160}
-              height={160}
-              className="rounded-lg w-24 h-auto"
-            />
-
+            <Image src="/algoshpelogo.png" alt="AlgoSHPE Logo" width={160} height={160} className="rounded-lg w-24 h-auto" />
             <div className="flex gap-6">
-              {[
-                { label: "About", handler: handleAbout },
-                { label: "Assignments", handler: handleAssignments },
-                { label: "Q & A", handler: handleQandA },
-                { label: "Resources", handler: handleResources },
-                { label: "Leaderboard", handler: handleLeaderboard },
-                { label: "Log Out", handler: handleLogOut },
-              ].map(({ label, handler }) => (
-                <div
-                  key={label}
-                  onClick={handler}
-                  className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200"
-                >
-                  {label}
-                </div>
-              ))}
+              <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">About</div>
+              <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Assignments</div>
+              <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Q & A</div>
+              <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Resources</div>
+              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Leaderboard</div>
+              <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Log Out</div>
             </div>
           </div>
         </header>
 
-        {/* Content */}
         <div className="flex min-h-screen bg-[#F5F5F5]">
-          {/* Left Panel - Description */}
+          {/* LEFT PANEL */}
           <div className="w-1/3 p-10 bg-white shadow-lg">
             <h1 className="text-3xl font-bold mb-4">{assignment.title}</h1>
             <p className="text-gray-700 mb-4">{assignment.description}</p>
-            <p className="text-sm text-gray-500">
-              Due Date: {assignment.due_date ?? "No due date"}
-            </p>
-          </div>
+            <p className="text-sm text-gray-500 mb-6">Due Date: {assignment.due_date ?? "No due date"}</p>
 
-            {/* Right Panel - Editor & Output */}
-            <div className="w-2/3 p-10 flex flex-col gap-4">
-            {/* Controls */}
-            <div className="flex justify-end items-center">
-                <div className="flex gap-2">
-                <button
-                    onClick={handleRun}
-                    className="flex items-center gap-1 px-4 py-2 text-white bg-[#52796F] rounded hover:bg-[#52796F] transition"
-                >
-                    <Image src="/run2.png" alt="Run" width={18} height={18} />
-                </button>
-
-                <button
-                    onClick={handleSave}
-                    className="px-4 py-2 text-white bg-[#52796F] rounded hover:bg-[#52796F] transition"
-                >
-                    Submit
-                </button>
-
-                <button
-                    onClick={() => setTheme(prev => (prev === "vs-dark" ? "light" : "vs-dark"))}
-                    className="px-4 py-2 text-white bg-[#52796F] rounded hover:bg-[#52796F] transition"
-                >
-                    {theme === "vs-dark" ? "Light" : "Dark"} Mode
-                </button>
-                </div>
+            {/* Test Cases */}
+            <div className="bg-gray-100 p-4 rounded-md mb-6">
+              <h2 className="text-lg font-semibold mb-2">Test Cases</h2>
+              <ul className="space-y-4">
+                {JSON.parse(assignment.test_cases || "[]").map((tc: any, i: number) => (
+                  <li key={i} className="text-sm text-gray-700">
+                    <p className="font-semibold">Example {i + 1}:</p>
+                    <p><strong>Input:</strong> {tc.input}</p>
+                    <p><strong>Output:</strong> {tc.output}</p>
+                    {tc.explanation && <p><strong>Explanation:</strong> {tc.explanation}</p>}
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* Editor */}
-            <Editor
+            {/* Hints */}
+            <div className="bg-gray-100 p-4 rounded-md">
+              <h2 className="text-lg font-semibold mb-2 cursor-pointer" onClick={() => setShowHints(!showHints)}>
+                {showHints ? "▼" : "▶"} Hints
+              </h2>
+              {showHints && (
+                <ul className="list-disc list-inside space-y-2 mt-2">
+                  {JSON.parse(assignment.hints || "[]").map((hint: string, i: number) => (
+                    <li key={i} className="text-sm text-gray-700">{hint}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT PANEL */}
+          <div className="w-2/3 p-10 flex flex-col gap-4">
+            <div className="flex justify-end items-center">
+              <div className="flex gap-2">
+                <button onClick={handleRun} className="flex items-center gap-1 px-4 py-2 text-white bg-[#52796F] rounded">
+                  <Image src="/run2.png" alt="Run" width={18} height={18} />
+                </button>
+                <button className="px-4 py-2 text-white bg-[#52796F] rounded">Submit</button>
+                <button
+                  onClick={() => setTheme(prev => (prev === "dark" ? "light" : "dark"))}
+                  className="px-4 py-2 text-white bg-[#52796F] rounded"
+                >
+                  {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+                </button>
+              </div>
+            </div>
+
+            {/* Monaco Editor */}
+            <div className="rounded-md overflow-hidden">
+              <Editor
                 height="50vh"
                 value={code}
                 onChange={(value) => setCode(value || "")}
-                theme={theme}
-                options={{
-                fontSize: 14,
-                minimap: { enabled: false },
-                automaticLayout: true,
+                language="python"
+                theme={theme === "dark" ? "algoshpe-dark" : "vs-light"}
+                onMount={(editor, monaco) => {
+                  monaco.editor.defineTheme('algoshpe-dark', {
+                    base: 'vs-dark',
+                    inherit: true,
+                    rules: [
+                      { token: 'comment', foreground: '6A9955' },
+                      { token: 'keyword', foreground: 'C586C0' },
+                      { token: 'string', foreground: 'CE9178' },
+                      { token: 'number', foreground: 'B5CEA8' },
+                      { token: 'type', foreground: '4EC9B0' },
+                      { token: 'function', foreground: 'DCDCAA' },
+                      { token: 'variable', foreground: '9CDCFE' },
+                    ],
+                    colors: {
+                      'editor.background': '#1E1E1E',
+                      'editor.foreground': '#FFFFFF',
+                      'editor.lineHighlightBackground': '#2c313a',
+                      'editorCursor.foreground': '#FFFFFF',
+                      'editorIndentGuide.background': '#404040',
+                      'editorLineNumber.foreground': '#858585',
+                    }
+                  });
                 }}
-            />
+                options={{
+                  fontSize: 14,
+                  minimap: { enabled: false },
+                  automaticLayout: true,
+                }}
+              />
+            </div>
 
-            {/* Output Section */}
+            {/* Output */}
             <div className="bg-black text-white p-4 rounded-md font-mono h-40 overflow-y-auto">
-                <p className="text-green-400 font-semibold mb-2">Console Output:</p>
-                <pre className="whitespace-pre-wrap">{output || "No output yet..."}</pre>
+              <p className="text-green-400 font-semibold mb-2">Console Output:</p>
+              <pre className="whitespace-pre-wrap">{output || "No output yet..."}</pre>
             </div>
-            </div>
+          </div>
         </div>
       </div>
     </div>
