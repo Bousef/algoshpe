@@ -73,30 +73,23 @@ export const submissions = createTable(
     submittedAt: timestamp("submitted_at").defaultNow(),
   })
 );
-
-
-//comments table
-export const comments = createTable(
-  "comment",
-  (d) => ({
+export const comments = createTable("comment", (d) => {
+  return {
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
 
-    studentId: d.integer("student_id")
-      .notNull()
-      .references(() => students.id),
+    studentId: d.integer("student_id").notNull().references(() => students.id),
 
-    assignmentId: d.integer("assignment_id")
-      .notNull()
-      .references(() => assignments.id),
+    assignmentId: d.integer("assignment_id").notNull().references(() => assignments.id),
 
-    adminId: d.integer("admin_id")
-      .references(() => admins.id), // optional
+    adminId: d.integer("admin_id").references(() => admins.id),
+
+    parent_id: d.integer("parent_id"),
 
     is_private: d.boolean(),
     message: d.text(),
-    created_at: d.timestamp(),
-  })
-);
+    created_at: d.timestamp().defaultNow(),
+  };
+});
 
 //notes table  - shpe tech committee task!
 // export const notes = createTable(
@@ -157,7 +150,12 @@ export const assignmentsRelations = relations(assignments, ({ many }) => ({
 }));
 
 //Comments - 1 student, 1 assignment, 1 admin
-export const commentsRelations = relations(comments, ({ one }) => ({
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  parent: one(comments, {
+    fields: [comments.parent_id],
+    references: [comments.id],
+  }),
+  replies: many(comments),
   student: one(students, {
     fields: [comments.studentId],
     references: [students.id],
@@ -171,6 +169,7 @@ export const commentsRelations = relations(comments, ({ one }) => ({
     references: [admins.id],
   }),
 }));
+
 
 // //Notes -
 // export const notesRelations = relations(notes, ({ one }) => ({
