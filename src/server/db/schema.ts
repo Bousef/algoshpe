@@ -92,9 +92,9 @@ export const comments = createTable("comment", (d) => {
   return {
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
 
-    studentId: d.integer("student_id").notNull().references(() => students.id),
+    studentId: d.integer("student_id").references(() => students.id), 
 
-    assignmentId: d.integer("assignment_id").notNull().references(() => assignments.id),
+    assignmentId: d.integer("assignment_id"),
 
     adminId: d.integer("admin_id").references(() => admins.id),
 
@@ -105,6 +105,7 @@ export const comments = createTable("comment", (d) => {
     created_at: d.timestamp().defaultNow(),
   };
 });
+
 
 //notes table  - shpe tech committee task!
 // export const notes = createTable(
