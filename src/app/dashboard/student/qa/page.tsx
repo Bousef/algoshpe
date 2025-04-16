@@ -28,10 +28,11 @@ export default function QA() {
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
   const router = useRouter();
 
+  const handleAbout = () => router.push('/dashboard/student/about');
   const handleAssignment = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
   const handleResources = () => router.push('/dashboard/student/resources');
-  const handleLeadership = () => router.push('/dashboard/student/leaderboard');
+  const handleLeaderboard = () => router.push('/dashboard/student/leaderboard');
   const handleLogOut = () => router.push('/');
 
   const fetchUserId = async () => {
@@ -198,10 +199,11 @@ export default function QA() {
           <div className="flex justify-between items-center w-full px-6">
             <Image src="/algoshpelogo.png" alt="AlgoSHPE Logo" width={160} height={160} className="rounded-lg w-24 h-auto" />
             <div className="flex gap-6 text-white">
+              <div onClick={handleAbout} className="cursor-pointer hover:text-[#A1B0A6]">About</div>
               <div onClick={handleAssignment} className="cursor-pointer hover:text-[#A1B0A6]">Assignments</div>
               <div onClick={handleQandA} className="cursor-pointer hover:text-[#A1B0A6]">Q & A</div>
               <div onClick={handleResources} className="cursor-pointer hover:text-[#A1B0A6]">Resources</div>
-              <div onClick={handleLeadership} className="cursor-pointer hover:text-[#A1B0A6]">Leadership</div>
+              <div onClick={handleLeaderboard} className="cursor-pointer hover:text-[#A1B0A6]">Leaderboard</div>
               <div onClick={handleLogOut} className="cursor-pointer hover:text-[#A1B0A6]">Log Out</div>
             </div>
           </div>

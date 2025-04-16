@@ -12,7 +12,7 @@ import { publicProcedure, createTRPCRouter } from "src/server/api/trpc";
 import { db } from "src/server/db";
 import { submissions } from "src/server/db/schema";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export const submissionRouter = createTRPCRouter({
 
@@ -59,6 +59,28 @@ export const submissionRouter = createTRPCRouter({
         if (submission.length === 0) throw new Error("Error: Submission Not Found");
 
         return submission[0];
+    }),
+
+    //get the submission count of the student id
+    getStudentSubmissionCount: publicProcedure
+        .input(z.object({ studentId: z.number() }))
+        .query(async ({ input }) => {
+            const countResult = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(submissions)
+            .where(eq(submissions.studentId, input.studentId));
+
+        return countResult[0]?.count ?? 0;
+    }),
+
+    //get all of that students submission
+    getAllStudentSubmissions: publicProcedure
+        .input(z.object({ studentId: z.number() }))
+        .query(async ({ input }) => {
+            return await db
+            .select({ assignmentId: submissions.assignmentId })
+            .from(submissions)
+            .where(eq(submissions.studentId, input.studentId));
     }),
     
     //get submissions by student id 

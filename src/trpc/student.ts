@@ -120,4 +120,53 @@ export const studentRouter = createTRPCRouter({
 
       return { message: "Student deleted successfully", student: deletedStudent[0] };
     }),
+
+    //get all assignments
+  getStudentAssignments: publicProcedure
+    .input(z.object({ studentId: z.number() }))
+    .query(async ({ input }) => {
+      const student = await db.query.students.findFirst({
+        where: (s, { eq }) => eq(s.id, input.studentId),
+      });
+
+      if (!student) throw new Error("Student not found");
+
+      return {
+        current: student.currentAssignments ?? [],
+        past: student.pastAssignments ?? [],
+      };
+  }),
+
+  //should update assignment status
+  updateAssignmentStatus: publicProcedure
+    .input(
+      z.object({
+        studentId: z.number(),
+        assignmentId: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const student = await db.query.students.findFirst({
+        where: (s, { eq }) => eq(s.id, input.studentId),
+      });
+
+      if (!student) throw new Error("Student not found");
+
+      const current = student.currentAssignments ?? [];
+      const past = student.pastAssignments ?? [];
+
+      const updatedCurrent = current.filter(id => id !== input.assignmentId);
+      const updatedPast = past.includes(input.assignmentId)
+        ? past
+        : [...past, input.assignmentId];
+
+      await db.update(students)
+        .set({
+          currentAssignments: updatedCurrent,
+          pastAssignments: updatedPast,
+        })
+        .where(eq(students.id, input.studentId));
+
+      return { success: true };
+  }),
 });

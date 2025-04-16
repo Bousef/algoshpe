@@ -29,6 +29,7 @@ export default function AssignmentDetailPage() {
   const [submissions, setSubmissions] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"new" | number>("new");
   const [isCreatingNew, setIsCreatingNew] = useState(true);
+  const updateAssignmentStatus = api.student.updateAssignmentStatus.useMutation();
 
   const { data: assignment, isLoading } = api.assignment.getAssignmentByID.useQuery(
     { id: assignmentId! },
@@ -90,6 +91,7 @@ export default function AssignmentDetailPage() {
   }, [activeTab, assignment, selectedSubmission]);
   
 
+  //runs code in appropiate languages with all test cases
   const handleRun = () => {
     if (!assignment) return;
 
@@ -120,12 +122,14 @@ export default function AssignmentDetailPage() {
     runAllTests();
   };
 
+  //student presses submit -> should be creating submission
   const handleSubmit = async () => {
     try {
       if (!studentId || !assignmentId || !code || !output) {
         throw new Error("Missing Submission Data");
       }
 
+      //new submission
       const submission = await createSubmission.mutateAsync({
         studentId: studentId,
         assignmentId: assignmentId,
@@ -138,6 +142,7 @@ export default function AssignmentDetailPage() {
         throw new Error("Submission creation failed: No submission Returned");
       }
 
+      //add submission to assignment submission_ids array
       await addSubmissionToAssignment.mutateAsync({
         assignmentId: assignmentId,
         submissionId: submission.id,
@@ -146,8 +151,13 @@ export default function AssignmentDetailPage() {
       setSubmissions(prev => [...prev, submission.id]);
       setActiveTab(submission.id);
 
+      await updateAssignmentStatus.mutateAsync({
+        studentId,
+        assignmentId,
+      });
+
     } catch (err) {
-      console.error("Submission failed:", err);
+      console.error("Submission Failed:", err);
     }
   };
 

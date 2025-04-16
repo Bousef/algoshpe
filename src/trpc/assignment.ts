@@ -2,7 +2,7 @@ import { publicProcedure, createTRPCRouter } from "src/server/api/trpc";
 import { db } from "src/server/db";
 import { assignments } from "src/server/db/schema";
 import { z } from "zod";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, inArray } from "drizzle-orm";
 
 export const assignmentRouter = createTRPCRouter({
 
@@ -145,6 +145,26 @@ export const assignmentRouter = createTRPCRouter({
         return assignment[0];
     }),
 
+    //get assignments by array of ids
+    getAssignmentsByArrayIds: publicProcedure
+      .input(z.object({ ids: z.array(z.number()) }))
+      .query(async ({ input }) => {
+        return await db
+          .select()
+          .from(assignments)
+          .where(inArray(assignments.id, input.ids));
+    }),
+
+    //get the count of all assignments in the db
+    getTotalAssignmentCount: publicProcedure
+      .query(async () => {
+        const countResult = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(assignments);
+
+        return countResult[0]?.count ?? 0;
+    }),
+    
     //update Assignment
     updateAssignment: publicProcedure
     .input(

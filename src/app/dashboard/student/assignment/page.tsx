@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import { Montserrat } from 'next/font/google';
 import { useState, useEffect } from 'react';
 import { api } from "~/trpc/react";
+import { Pie } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '700'] });
 
@@ -19,17 +28,7 @@ export default function Assignment() {
   const handleLeaderboard = () => router.push('/dashboard/student/leaderboard');
   const handleLogOut = () => router.push('/');
 
-  type Assignment = {
-    id: number;
-    title: string;
-    description: string | null;
-    due_date: string | null;
-  };
-
   //state variables
-  const [currentAssignments, setCurrentAssignments] = useState<Assignment[]>([]);
-  const [pastAssignments, setPastAssignments] = useState<Assignment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [studentId, setStudentId] = useState<number | null>(null);
 
   //student id from local storage
@@ -40,26 +39,36 @@ export default function Assignment() {
     }
   }, []);
 
-  //only calls apis if studentid is available
-  const { data: currData, isLoading: currLoading } = api.assignment.getCurrAssignments.useQuery(
-    { studentId: studentId ?? 0 },  
-    { enabled: studentId !== null }
-  );
-  
-  const { data: pastData, isLoading: pastLoading } = api.assignment.getPastAssignments.useQuery(
+  //fetch using apis!
+  const { data: studentAssignmentIds, isLoading: loadingIds } = api.student.getStudentAssignments.useQuery(
     { studentId: studentId ?? 0 },
     { enabled: studentId !== null }
   );
 
-  //when currData or pastData are changed, it calls this !
-  useEffect(() => {
-    console.log(studentId, currData, pastData);
-    if (currData) setCurrentAssignments(currData);
-    if (pastData) setPastAssignments(pastData);
-  
-    if (!currLoading && !pastLoading) setLoading(false);
-  }, [currData, pastData, currLoading, pastLoading]);
+  const { data: currentAssignments = [] } = api.assignment.getAssignmentsByArrayIds.useQuery(
+    { ids: studentAssignmentIds?.current ?? [] },
+    { enabled: !!studentAssignmentIds }
+  );
 
+  const { data: pastAssignments = [] } = api.assignment.getAssignmentsByArrayIds.useQuery(
+    { ids: studentAssignmentIds?.past ?? [] },
+    { enabled: !!studentAssignmentIds }
+  );
+
+  const { data: studentSubmissionCount } = api.submission.getStudentSubmissionCount.useQuery(
+    { studentId: studentId ?? 0 },
+    { enabled: studentId !== null }
+  );
+  const { data: allSubmissions = [] } = api.submission.getAllStudentSubmissions.useQuery(
+    { studentId: studentId ?? 0 },
+    { enabled: studentId !== null }
+  );
+
+  const { data: totalAssignmentCount } = api.assignment.getTotalAssignmentCount.useQuery();
+  const uniqueSubmittedAssignmentIds = Array.from(
+    new Set(allSubmissions.map((s) => s.assignmentId))
+  );
+  const assignmentsSubmittedCount = uniqueSubmittedAssignmentIds.length;
 
   return (
     <div className={montserrat.className}>
@@ -111,7 +120,7 @@ export default function Assignment() {
 
             <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg text-white">
               <h2 className="text-2xl text-center font-semibold mb-2">Current Assignments</h2>
-              {loading ? null : currentAssignments.length === 0 ? <p>No current assignments.</p> : currentAssignments.map((assignment) => (
+              {loadingIds ? null : currentAssignments.length === 0 ? <p>No current assignments.</p> : currentAssignments.map((assignment) => (
                 <div
                 key={assignment.id}
                 onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
@@ -127,7 +136,7 @@ export default function Assignment() {
             {/* Past Assignments */}
             <div className="flex-1 bg-[#A1B0A6] p-6 rounded-lg text-white">
             <h2 className="text-2xl text-center font-semibold text-white">Past Assignments</h2>
-              {loading ? null : pastAssignments.length === 0 ? <p>No past assignments.</p> : pastAssignments.map((assignment) => (
+              {loadingIds ? null : pastAssignments.length === 0 ? <div className="text-center text-white text-lg mt-8">No past assignments.</div> : pastAssignments.map((assignment) => (
                 <div
                   key={assignment.id}
                   onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
@@ -143,10 +152,42 @@ export default function Assignment() {
             {/* Pie Chart */}
             <div className="flex-1 bg-[#8B9A8B] p-6 rounded-lg">
               <h2 className="text-2xl text-center font-semibold text-white">Pie Chart</h2>
-              {/* Add your pie chart component here */}
-              <p>Pie chart goes here...</p>
+              {studentSubmissionCount !== undefined && totalAssignmentCount !== undefined ? (
+                  <div className="text-white text-center">
+                    <p className="text-lg mb-2">
+                      Assignments Submitted: {assignmentsSubmittedCount} / {totalAssignmentCount}
+                    </p>
+                    <Pie
+                      data={{
+                        labels: ['Submitted', 'Remaining'],
+                        datasets: [
+                          {
+                              data: [
+                              assignmentsSubmittedCount,
+                              Math.max(totalAssignmentCount - assignmentsSubmittedCount, 0),
+                            ],
+                            backgroundColor: ['#52796F', '#DADADA'],
+                            borderWidth: 1,
+                          },
+                        ],
+                      }}
+                      options={{
+                        responsive: true,
+                        plugins: {
+                          legend: {
+                            position: 'bottom',
+                            labels: {
+                              color: 'white',
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-white text-center">Loading chart...</p>
+                )}
             </div>
-            
           </div>
         </div>
       </div>
