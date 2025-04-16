@@ -15,7 +15,7 @@ export default function Header() {
   const handleResources = () => router.push('/dashboard/admin/resources');
   const handleLeaderboard = () => router.push('/dashboard/admin/leaderboard');
   const handleStudent = () => router.push('/dashboard/admin/student');
-  const handleLogOut = () => router.push('/logout');
+  const handleLogOut = () => router.push('/');
 
   return (
     <div className={montserrat.className}>

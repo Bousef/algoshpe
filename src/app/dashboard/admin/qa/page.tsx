@@ -34,7 +34,7 @@ export default function QA() {
   const handleResources = () => router.push('/dashboard/admin/resources');
   const handleLeaderboard = () => router.push('/dashboard/admin/leaderboard');
   const handleStudent = () => router.push('/dashboard/admin/student');
-  const handleLogOut = () => router.push('/logout');
+  const handleLogOut = () => router.push('/');
 
   const fetchUserId = async () => {
     const username = localStorage.getItem('username');
@@ -280,11 +280,6 @@ export default function QA() {
                 </header>
 
         <main className="max-w-2xl mx-auto py-8 px-4">
-          {!userRecordId && (
-            <p className="text-red-600 text-sm mb-4">
-              Loading user info... Make sure you're logged in.
-            </p>
-          )}
 
           <div className="bg-white p-4 rounded-lg shadow-md">
             <textarea
