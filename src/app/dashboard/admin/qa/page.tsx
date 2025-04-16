@@ -121,13 +121,12 @@ export default function QA() {
     const insertData = {
       student_id: currentUserRole === 'student' ? userRecordId : null,
       admin_id: currentUserRole === 'admin' ? userRecordId : null,
-      assignment_id: 1,
       parent_id: parentId,
       message: content,
       is_private: false,
       created_at: new Date(),
     };
-
+    
     const { error } = await supabase.from('algoshpe_comment').insert(insertData);
     if (!error) {
       if (parentId) setReplyInputs((prev) => ({ ...prev, [parentId]: '' }));

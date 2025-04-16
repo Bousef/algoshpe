@@ -94,8 +94,6 @@ export const comments = createTable("comment", (d) => {
 
     studentId: d.integer("student_id").references(() => students.id), 
 
-    assignmentId: d.integer("assignment_id"),
-
     adminId: d.integer("admin_id").references(() => admins.id),
 
     parent_id: d.integer("parent_id"),
@@ -175,10 +173,6 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
   student: one(students, {
     fields: [comments.studentId],
     references: [students.id],
-  }),
-  assignment: one(assignments, {
-    fields: [comments.assignmentId],
-    references: [assignments.id],
   }),
   admin: one(admins, {
     fields: [comments.adminId],
