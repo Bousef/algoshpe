@@ -1,12 +1,3 @@
-/*
-Assignments:
-getAssignment [ID]
-getAllAssignments [paging needed]
-createAssignment
-updateAssignment [ID]
-deleteAssignment [ID]
-*/
-
 import { publicProcedure, createTRPCRouter } from "src/server/api/trpc";
 import { db } from "src/server/db";
 import { assignments } from "src/server/db/schema";
@@ -21,7 +12,8 @@ export const assignmentRouter = createTRPCRouter({
       z.object({
         title: z.string(),
         description: z.string(),
-        due_date: z.date()
+        due_date: z.date(),
+        submission_ids: z.array(z.number()).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -35,38 +27,101 @@ export const assignmentRouter = createTRPCRouter({
         return newAssignment[0];
     }),
     
-    // Get current assignments (due today or in the future)
+    //get current assignments (due today or in the future - or not submitted)
     getCurrAssignments: publicProcedure
-    .input(z.object({ page: z.number().optional() }).optional())
-    .query(async ({ input }) => {
-      const page = input?.page || 1;
-      const limit = 10;
-      const offset = (page - 1) * limit;
+      .input(
+        z.object({ studentId: z.number(), page: z.number().optional() })
+      )
+      .query(async ({ input }) => {
+        const page = input.page || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
 
-      return await db
-        .select()
-        .from(assignments)
-        .where(sql`due_date >= CURRENT_DATE`)
-        .limit(limit)
-        .offset(offset);
+        return await db
+          .select({
+            id: assignments.id,
+            title: assignments.title,
+            description: assignments.description,
+            due_date: assignments.due_date,
+          })
+          .from(assignments)
+          .where(
+            sql`due_date >= CURRENT_DATE AND NOT (${input.studentId} = ANY (assignments.submission_ids))`
+          )
+          .limit(limit)
+          .offset(offset);
     }),
 
-    // Get past assignments (due date before today)
+    //get past assignments (due date before today or submitted)
     getPastAssignments: publicProcedure
-    .input(z.object({ page: z.number().optional() }).optional())
-    .query(async ({ input }) => {
-      const page = input?.page || 1;
-      const limit = 10;
-      const offset = (page - 1) * limit;
+      .input(
+        z.object({ studentId: z.number(), page: z.number().optional() })
+      )
+      .query(async ({ input }) => {
+        const page = input.page || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
 
-      return await db
-        .select()
-        .from(assignments)
-        .where(sql`due_date < CURRENT_DATE`)
-        .limit(limit)
-        .offset(offset);
+        return await db
+          .select({
+            id: assignments.id,
+            title: assignments.title,
+            description: assignments.description,
+            due_date: assignments.due_date,
+          })
+          .from(assignments)
+          .where(
+            sql`due_date < CURRENT_DATE OR EXISTS (
+              SELECT 1 FROM submission
+              WHERE submission.assignment_id = assignment.id
+              AND submission.student_id = ${input.studentId}
+            )`
+          )
+          .limit(limit)
+          .offset(offset);
     }),
-  
+
+    // add submission to assignment submission ids array
+    addSubmissionToAssignment: publicProcedure
+        .input(
+        z.object({
+            assignmentId: z.number(),
+            submissionId: z.number(),
+        })
+        )
+        .mutation(async ({ input }) => {
+        const updatedAssignment = await db
+            .update(assignments)
+            .set({
+            submission_ids: sql`array_append(coalesce(submission_ids, '{}'), ${input.submissionId})`,
+            })
+            .where(eq(assignments.id, input.assignmentId))
+            .returning();
+
+        if (updatedAssignment.length === 0) {
+            throw new Error("Error: Assignment Not Found");
+        }
+    return updatedAssignment[0];
+    }),
+
+    //get all submission ids or none from assignment
+    getSubmissionIds: publicProcedure
+      .input(
+        z.object({
+          assignmentId: z.number()
+        })
+      )
+      .query(async ({ input }) => {
+        const result = await db
+          .select({ submissionIds: assignments.submission_ids })
+          .from(assignments)
+          .where(eq(assignments.id, input.assignmentId))
+          .limit(1);
+
+        //return the array or an empty one if not found!
+  const submissionIds = result[0]?.submissionIds;
+        return Array.isArray(submissionIds) ? submissionIds : [];
+    }),
   
     //get all Assignments
     getAssignments: publicProcedure

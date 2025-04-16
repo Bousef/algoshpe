@@ -11,6 +11,7 @@ const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '700'
 export default function Assignment() {
   const router = useRouter();
 
+  //header routers
   const handleAbout = () => router.push('/dashboard/student/about');
   const handleAssignment= () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
@@ -25,14 +26,34 @@ export default function Assignment() {
     due_date: string | null;
   };
 
+  //state variables
   const [currentAssignments, setCurrentAssignments] = useState<Assignment[]>([]);
   const [pastAssignments, setPastAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [studentId, setStudentId] = useState<number | null>(null);
 
-  const { data: currData, isLoading: currLoading } = api.assignment.getCurrAssignments.useQuery();
-  const { data: pastData, isLoading: pastLoading } = api.assignment.getPastAssignments.useQuery();
-
+  //student id from local storage
   useEffect(() => {
+    const idFromStorage = localStorage.getItem("Student_ID");
+    if (idFromStorage) {
+      setStudentId(Number(idFromStorage));
+    }
+  }, []);
+
+  //only calls apis if studentid is available
+  const { data: currData, isLoading: currLoading } = api.assignment.getCurrAssignments.useQuery(
+    { studentId: studentId ?? 0 },  
+    { enabled: studentId !== null }
+  );
+  
+  const { data: pastData, isLoading: pastLoading } = api.assignment.getPastAssignments.useQuery(
+    { studentId: studentId ?? 0 },
+    { enabled: studentId !== null }
+  );
+
+  //when currData or pastData are changed, it calls this !
+  useEffect(() => {
+    console.log(studentId, currData, pastData);
     if (currData) setCurrentAssignments(currData);
     if (pastData) setPastAssignments(pastData);
   
@@ -90,7 +111,7 @@ export default function Assignment() {
 
             <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg text-white">
               <h2 className="text-2xl text-center font-semibold mb-2">Current Assignments</h2>
-              {currentAssignments.map((assignment) => (
+              {loading ? null : currentAssignments.length === 0 ? <p>No current assignments.</p> : currentAssignments.map((assignment) => (
                 <div
                 key={assignment.id}
                 onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
@@ -106,7 +127,7 @@ export default function Assignment() {
             {/* Past Assignments */}
             <div className="flex-1 bg-[#A1B0A6] p-6 rounded-lg text-white">
             <h2 className="text-2xl text-center font-semibold text-white">Past Assignments</h2>
-              {pastAssignments.map((assignment) => (
+              {loading ? null : pastAssignments.length === 0 ? <p>No past assignments.</p> : pastAssignments.map((assignment) => (
                 <div
                   key={assignment.id}
                   onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}

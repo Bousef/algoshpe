@@ -26,12 +26,16 @@ export default function Login() {
   
       if (response.user && response.user.username) {
         localStorage.setItem("username", response.user.username);
+        if(response?.role == 'Student')
+        {
+          localStorage.setItem("Student_ID", response.user.id.toString()); //need to store student's id for many apis
+        }
       }
   
       if (response?.role === 'Admin') {
-        router.push('/dashboard/admin');
+        router.push('/dashboard/admin/student');
       } else if (response?.role === 'Student') {
-        router.push('/dashboard/student');
+        router.push('/dashboard/student/assignment');
       } else {
         alert("Wrong Info");
       }

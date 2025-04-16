@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { customType, index, pgTableCreator, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -9,6 +9,15 @@ import { index, pgTableCreator, primaryKey, text, timestamp, uuid } from "drizzl
  */
 export const createTable = pgTableCreator((name) => `algoshpe_${name}`);
 
+//custom type for arrays
+const intArray = customType<{
+  data: number[];
+  driverData: number[];
+}>({
+  dataType() {
+    return 'integer[]';
+  }
+});
 
 //--------------------  Tables --------------------
 
@@ -25,6 +34,8 @@ export const students = createTable(
     password: d.varchar({ length: 100 }).notNull(),
     attendance: d.integer(),
     algoshpe_points: d.integer(),
+    currentAssignments: intArray("currentAssignments"),
+    pastAssignments: intArray("pastAssignments"),
   })
 );
 
@@ -38,6 +49,7 @@ export const admins = createTable(
     password: d.varchar({ length: 100 }).notNull(),
   })
 );
+
 //assignments table
 export const assignments = createTable(
   "assignment",
@@ -46,6 +58,7 @@ export const assignments = createTable(
     title: d.varchar({ length: 100 }).notNull(),
     description: d.text(),
     due_date: d.date(),
+    submission_ids: intArray("submission_ids"),
     starter_code: d.text(), // new
     test_cases: d.text(),   // new (store as JSON string)
     hints: d.text(),        // new (store as JSON string)
@@ -73,6 +86,8 @@ export const submissions = createTable(
     submittedAt: timestamp("submitted_at").defaultNow(),
   })
 );
+
+
 export const comments = createTable("comment", (d) => {
   return {
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),

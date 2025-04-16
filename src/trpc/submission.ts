@@ -50,7 +50,7 @@ export const submissionRouter = createTRPCRouter({
         return await db.select().from(submissions).limit(limit).offset(offset);
     }),
 
-    //get one submission by ID
+    //get submission by submission ID
     getSubmissionById: publicProcedure
         .input(z.object({ id: z.number() }))
         .query(async ({ input }) => {

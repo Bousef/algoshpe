@@ -13,6 +13,7 @@ export default function AssignmentDetailPage() {
   const router = useRouter();
   const { id } = useParams();
 
+  //header routers
   const handleAbout = () => router.push('/dashboard/student/about');
   const handleAssignments = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
@@ -20,45 +21,46 @@ export default function AssignmentDetailPage() {
   const handleLeaderboard = () => router.push('/leaderboard');
   const handleLogOut = () => router.push('/logout');
 
+  //state variables
   const [assignmentId, setAssignmentId] = useState<number | null>(null);
   const [showHints, setShowHints] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [code, setCode] = useState<string>("");
   const [output, setOutput] = useState<string>("");
   const [studentId, setStudentId] = useState<number | null>(null);
-  const [submissions, setSubmissions] = useState<number[]>([]);
-  const [activeTab, setActiveTab] = useState<"new" | number>("new");
-  const [isCreatingNew, setIsCreatingNew] = useState(true);
-
+  const [submissions, setSubmissionsIds] = useState<number[]>([]);
+ 
+  //api calls if assignment id is given!
   const { data: assignment, isLoading } = api.assignment.getAssignmentByID.useQuery(
     { id: assignmentId! },
     { enabled: !!assignmentId }
   );
-
   const createSubmission = api.submission.createSubmission.useMutation();
   const addSubmissionToAssignment = api.assignment.addSubmissionToAssignment.useMutation();
   const runCode = api.python.run.useMutation();
 
   const { data: submissionIds, isSuccess } = api.assignment.getSubmissionIds.useQuery(
     { assignmentId: assignmentId ?? 0 },
-    { enabled: assignmentId !== null }
-  );
-
-  const { data: selectedSubmission } = api.submission.getSubmissionById.useQuery(
-    { id: activeTab as number },
     {
-      enabled: typeof activeTab === "number",
+      enabled: assignmentId !== null,
     }
   );
+  
+  //submission ids retrieved from curr assignment page
+  useEffect(() => {
+    if (isSuccess && submissionIds) {
+      setSubmissionsIds(submissionIds);
+    }
+  }, [isSuccess, submissionIds]);
 
-  // Load assignment ID from URL
+  //assignment id passed in from url
   useEffect(() => {
     if (typeof id === "string") {
       setAssignmentId(parseInt(id));
     }
   }, [id]);
 
-  // Get student ID from localStorage
+  //student id from local storage
   useEffect(() => {
     const idFromStorage = localStorage.getItem("Student_ID");
     if (idFromStorage) {
@@ -66,30 +68,15 @@ export default function AssignmentDetailPage() {
     }
   }, []);
 
-  // Load submissions from query
+  //set code whenever changed
   useEffect(() => {
-    if (submissionIds && Array.isArray(submissionIds)) {
-      setSubmissions(submissionIds);
+    if (assignment?.starter_code) {
+      setCode(assignment.starter_code);
     }
-  }, [isSuccess, submissionIds]);
+  }, [assignment]);
 
-  // Load starter code or submission code/output based on active tab
-  // Handle active tab switching
-  useEffect(() => {
-    if (activeTab === "new") {
-      setIsCreatingNew(true);
-      if (assignment?.starter_code) {
-        setCode(assignment.starter_code);
-      }
-      setOutput("");
-    } else if (typeof activeTab === "number" && selectedSubmission) {
-      setIsCreatingNew(false);
-      setCode(selectedSubmission.code || "");
-      setOutput(selectedSubmission.output || "");
-    }
-  }, [activeTab, assignment, selectedSubmission]);
-  
-
+ 
+  //handles test cases and running of code
   const handleRun = () => {
     if (!assignment) return;
 
@@ -120,12 +107,15 @@ export default function AssignmentDetailPage() {
     runAllTests();
   };
 
+
+  //handles submit - should be adding to submissions id of assignment
   const handleSubmit = async () => {
     try {
       if (!studentId || !assignmentId || !code || !output) {
         throw new Error("Missing Submission Data");
       }
-
+  
+      //create submission
       const submission = await createSubmission.mutateAsync({
         studentId: studentId,
         assignmentId: assignmentId,
@@ -133,19 +123,20 @@ export default function AssignmentDetailPage() {
         output: output,
         status: "Submitted",
       });
-
+  
       if (!submission) {
         throw new Error("Submission creation failed: No submission Returned");
       }
 
+      //add submission ID to the assignment's submission_ids
       await addSubmissionToAssignment.mutateAsync({
         assignmentId: assignmentId,
         submissionId: submission.id,
       });
 
-      setSubmissions(prev => [...prev, submission.id]);
-      setActiveTab(submission.id);
+      handleAssignments(); //redirect to assignments page 
 
+      console.log("Submission successful:", submission);
     } catch (err) {
       console.error("Submission failed:", err);
     }
@@ -160,12 +151,12 @@ export default function AssignmentDetailPage() {
           <div className="flex justify-between items-center w-full px-6">
             <Image src="/algoshpelogo.png" alt="AlgoSHPE Logo" width={160} height={160} className="rounded-lg w-24 h-auto" />
             <div className="flex gap-6">
-              <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6]">About</div>
-              <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6]">Assignments</div>
-              <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6]">Q & A</div>
-              <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6]">Resources</div>
-              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6]">Leaderboard</div>
-              <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6]">Log Out</div>
+              <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">About</div>
+              <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Assignments</div>
+              <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Q & A</div>
+              <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Resources</div>
+              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Leaderboard</div>
+              <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Log Out</div>
             </div>
           </div>
         </header>
@@ -177,6 +168,7 @@ export default function AssignmentDetailPage() {
             <p className="text-gray-700 mb-4">{assignment.description}</p>
             <p className="text-sm text-gray-500 mb-6">Due Date: {assignment.due_date ?? "No due date"}</p>
 
+            {/* Test Cases */}
             <div className="bg-gray-100 p-4 rounded-md mb-6">
               <h2 className="text-lg font-semibold mb-2">Test Cases</h2>
               <ul className="space-y-4">
@@ -191,6 +183,7 @@ export default function AssignmentDetailPage() {
               </ul>
             </div>
 
+            {/* Hints */}
             <div className="bg-gray-100 p-4 rounded-md">
               <h2 className="text-lg font-semibold mb-2 cursor-pointer" onClick={() => setShowHints(!showHints)}>
                 {showHints ? "▼" : "▶"} Hints
@@ -207,80 +200,61 @@ export default function AssignmentDetailPage() {
 
           {/* RIGHT PANEL */}
           <div className="w-2/3 p-10 flex flex-col gap-4">
-            {/* Tabs */}
-            {submissions.length > 0 && (
-              <div className="flex gap-2 border-b border-gray-300 mb-2">
-                {submissions.map((id, index) => (
-                  <button
-                    key={id}
-                    onClick={() => setActiveTab(id)}
-                    className={`px-4 py-2 rounded-t-md ${
-                      activeTab === id ? "bg-white font-semibold border border-b-transparent" : "bg-gray-200"
-                    }`}
-                  >
-                    Submission {index + 1}
-                  </button>
-                ))}
+            <div className="flex justify-end items-center">
+              <div className="flex gap-2">
+                <button onClick={handleRun} className="flex items-center gap-1 px-4 py-2 text-white bg-[#52796F] rounded">
+                  <Image src="/run2.png" alt="Run" width={18} height={18} />
+                </button>
+                <button onClick={handleSubmit} className="px-4 py-2 text-white bg-[#52796F] rounded">Submit</button>
                 <button
-                  onClick={() => setActiveTab("new")}
-                  className={`px-4 py-2 rounded-t-md ${
-                    activeTab === "new" ? "bg-white font-semibold border border-b-transparent" : "bg-gray-200"
-                  }`}
+                  onClick={() => setTheme(prev => (prev === "dark" ? "light" : "dark"))}
+                  className="px-4 py-2 text-white bg-[#52796F] rounded"
                 >
-                  ＋
+                  {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
                 </button>
               </div>
-            )}
-
-            <div className="flex justify-end items-center gap-2">
-              <button onClick={handleRun} className="flex items-center gap-1 px-4 py-2 text-white bg-[#52796F] rounded">
-                <Image src="/run2.png" alt="Run" width={18} height={18} />
-              </button>
-              <button onClick={handleSubmit} className="px-4 py-2 text-white bg-[#52796F] rounded">Submit</button>
-              <button
-                onClick={() => setTheme(prev => (prev === "dark" ? "light" : "dark"))}
-                className="px-4 py-2 text-white bg-[#52796F] rounded"
-              >
-                {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
-              </button>
             </div>
 
-            <Editor
-              height="50vh"
-              value={code}
-              onChange={(value) => setCode(value || "")}
-              language="python"
-              theme={theme === "dark" ? "algoshpe-dark" : "vs-light"}
-              onMount={(editor, monaco) => {
-                monaco.editor.defineTheme('algoshpe-dark', {
-                  base: 'vs-dark',
-                  inherit: true,
-                  rules: [
-                    { token: 'comment', foreground: '6A9955' },
-                    { token: 'keyword', foreground: 'C586C0' },
-                    { token: 'string', foreground: 'CE9178' },
-                    { token: 'number', foreground: 'B5CEA8' },
-                    { token: 'type', foreground: '4EC9B0' },
-                    { token: 'function', foreground: 'DCDCAA' },
-                    { token: 'variable', foreground: '9CDCFE' },
-                  ],
-                  colors: {
-                    'editor.background': '#1E1E1E',
-                    'editor.foreground': '#FFFFFF',
-                    'editor.lineHighlightBackground': '#2c313a',
-                    'editorCursor.foreground': '#FFFFFF',
-                    'editorIndentGuide.background': '#404040',
-                    'editorLineNumber.foreground': '#858585',
-                  }
-                });
-              }}
-              options={{
-                fontSize: 14,
-                minimap: { enabled: false },
-                automaticLayout: true,
-              }}
-            />
+            {/* Monaco Editor */}
+            <div className="rounded-md overflow-hidden">
+              <Editor
+                height="50vh"
+                value={code}
+                onChange={(value) => setCode(value || "")}
+                language="python"
+                theme={theme === "dark" ? "algoshpe-dark" : "vs-light"}
+                onMount={(editor, monaco) => {
+                  monaco.editor.defineTheme('algoshpe-dark', {
+                    base: 'vs-dark',
+                    inherit: true,
+                    rules: [
+                      { token: 'comment', foreground: '6A9955' },
+                      { token: 'keyword', foreground: 'C586C0' },
+                      { token: 'string', foreground: 'CE9178' },
+                      { token: 'number', foreground: 'B5CEA8' },
+                      { token: 'type', foreground: '4EC9B0' },
+                      { token: 'function', foreground: 'DCDCAA' },
+                      { token: 'variable', foreground: '9CDCFE' },
+                    ],
+                    colors: {
+                      'editor.background': '#1E1E1E',
+                      'editor.foreground': '#FFFFFF',
+                      'editor.lineHighlightBackground': '#2c313a',
+                      'editorCursor.foreground': '#FFFFFF',
+                      'editorIndentGuide.background': '#404040',
+                      'editorLineNumber.foreground': '#858585',
+                    }
+                  });
+                }}
+                options={{
+                  fontSize: 14,
+                  minimap: { enabled: false },
+                  automaticLayout: true,
+                }}
+              />
+            </div>
 
+            {/* Output */}
             <div className="bg-black text-white p-4 rounded-md font-mono h-40 overflow-y-auto">
               <p className="text-green-400 font-semibold mb-2">Console Output:</p>
               <pre className="whitespace-pre-wrap">{output || "No output yet..."}</pre>
