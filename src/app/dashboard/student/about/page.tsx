@@ -10,11 +10,11 @@ export default function About() {
   const router = useRouter();
 
   const handleAbout = () => router.push('/dashboard/student/about');
-  const handleAssignments = () => router.push('/dashboard/student/assignment');
+  const handleAssignment = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
-  const handleResources = () => router.push('/Resources');
-  const handleLeaderboard = () => router.push('/leaderboard');
-  const handleLogOut = () => router.push('/logout');
+  const handleResources = () => router.push('/dashboard/student/resources');
+  const handleLeaderboard = () => router.push('/dashboard/student/leaderboard');
+  const handleLogOut = () => router.push('/');
 
   return (
     <div className={montserrat.className}>
@@ -36,7 +36,7 @@ export default function About() {
               <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 About
               </div>
-              <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+              <div onClick={handleAssignment} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Assignments
               </div>
               <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">

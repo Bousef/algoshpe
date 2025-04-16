@@ -64,7 +64,7 @@ export const studentRouter = createTRPCRouter({
     }),
 
   //get all students
-  getStudents: publicProcedure
+  getAllStudents: publicProcedure
     .input(z.object({ page: z.number().optional() }).optional())
     .query(async ({ input }) => {
       const page = input?.page || 1;

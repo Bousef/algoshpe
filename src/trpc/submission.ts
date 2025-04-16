@@ -40,14 +40,14 @@ export const submissionRouter = createTRPCRouter({
    }),
 
     //get all submissions
-    getSubmissions: publicProcedure
-        .input(z.object({ page: z.number().optional() }).optional())
-        .query(async ({ input }) => {
-        const page = input?.page || 1;
-        const limit = 10;
-        const offset = (page - 1) * limit;
-
-        return await db.select().from(submissions).limit(limit).offset(offset);
+    getAllSubmissions: publicProcedure
+        .query(async () => {
+        return await db
+            .select({
+            studentId: submissions.studentId,
+            assignmentId: submissions.assignmentId,
+            })
+            .from(submissions);
     }),
 
     //get submission by submission ID
@@ -73,16 +73,15 @@ export const submissionRouter = createTRPCRouter({
         return countResult[0]?.count ?? 0;
     }),
 
-    //get all of that students submission
+    //get all of that student's submissions
     getAllStudentSubmissions: publicProcedure
         .input(z.object({ studentId: z.number() }))
         .query(async ({ input }) => {
             return await db
-            .select({ assignmentId: submissions.assignmentId })
+            .select({ studentId: submissions.studentId, assignmentId: submissions.assignmentId })
             .from(submissions)
             .where(eq(submissions.studentId, input.studentId));
     }),
-    
     //get submissions by student id 
     getSubmissionByStudentId: publicProcedure
         .input(z.object({ id: z.number() }))

@@ -33,7 +33,7 @@ export const students = createTable(
     email: d.varchar({ length: 100 }).unique().notNull(),
     password: d.varchar({ length: 100 }).notNull(),
     attendance: d.integer(),
-    algoshpe_points: d.integer(),
+    algoshpe_points: d.integer().default(0),
     currentAssignments: intArray("currentAssignments"),
     pastAssignments: intArray("pastAssignments"),
   })

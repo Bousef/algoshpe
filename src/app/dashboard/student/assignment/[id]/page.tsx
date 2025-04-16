@@ -14,11 +14,11 @@ export default function AssignmentDetailPage() {
   const { id } = useParams();
 
   const handleAbout = () => router.push('/dashboard/student/about');
-  const handleAssignments = () => router.push('/dashboard/student/assignment');
+  const handleAssignment = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
-  const handleResources = () => router.push('/Resources');
-  const handleLeaderboard = () => router.push('/leaderboard');
-  const handleLogOut = () => router.push('/logout');
+  const handleResources = () => router.push('/dashboard/student/resources');
+  const handleLeaderboard = () => router.push('/dashboard/student/leaderboard');
+  const handleLogOut = () => router.push('/');
 
   const [assignmentId, setAssignmentId] = useState<number | null>(null);
   const [showHints, setShowHints] = useState(false);
@@ -171,7 +171,7 @@ export default function AssignmentDetailPage() {
             <Image src="/algoshpelogo.png" alt="AlgoSHPE Logo" width={160} height={160} className="rounded-lg w-24 h-auto" />
             <div className="flex gap-6">
               <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6]">About</div>
-              <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6]">Assignments</div>
+              <div onClick={handleAssignment} className="text-white cursor-pointer hover:text-[#A1B0A6]">Assignments</div>
               <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6]">Q & A</div>
               <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6]">Resources</div>
               <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6]">Leaderboard</div>
