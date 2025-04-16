@@ -70,10 +70,9 @@ export default function QA() {
 
   const fetchPosts = async () => {
     const { data, error } = await supabase
-    .from('algoshpe_comment')
-    .select('*')
-    .order('created_at', { ascending: true });
-  
+      .from('algoshpe_comment')
+      .select('*')
+      .order('created_at', { ascending: true });
 
     if (!error && data) {
       const map: Record<number, Post> = {};
@@ -126,10 +125,13 @@ export default function QA() {
       is_private: false,
       created_at: new Date(),
     };
-    
+
     const { error } = await supabase.from('algoshpe_comment').insert(insertData);
     if (!error) {
-      if (parentId) setReplyInputs((prev) => ({ ...prev, [parentId]: '' }));
+      if (parentId) {
+      setReplyInputs((prev) => ({ ...prev, [parentId]: '' }));
+      setExpandedComments((prev) => ({ ...prev, [parentId]: true }));
+    }
       else setNewPost('');
       fetchPosts();
     } else {
@@ -140,26 +142,24 @@ export default function QA() {
   const handleDeleteComment = async (commentId: number) => {
     const confirmDelete = confirm('Are you sure you want to delete this comment and its replies?');
     if (!confirmDelete) return;
-  
+
     const { data: comment, error: fetchError } = await supabase
       .from('algoshpe_comment')
       .select('id, student_id, admin_id')
       .eq('id', commentId)
       .single();
-  
+
     if (fetchError || !comment) {
       console.error('Failed to fetch comment for deletion:', fetchError?.message);
       return;
     }
-  
+
     if (currentUserRole !== 'admin') {
-        alert("Only admins can delete comments.");
-        return;
-      }
-      
-  
+      alert("Only admins can delete comments.");
+      return;
+    }
+
     await supabase.from('algoshpe_comment').delete().eq('parent_id', commentId);
-  
     const { error: deleteError } = await supabase.from('algoshpe_comment').delete().eq('id', commentId);
     if (!deleteError) {
       console.log('Comment and replies deleted');
@@ -167,7 +167,7 @@ export default function QA() {
     } else {
       console.error('Failed to delete comment:', deleteError.message);
     }
-  };  
+  };
 
   const toggleReplies = (id: number) => {
     setExpandedComments((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -188,7 +188,15 @@ export default function QA() {
             type="text"
             placeholder="Reply..."
             value={replyInputs[comment.id] || ''}
-            onChange={(e) => setReplyInputs((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+            onChange={(e) =>
+              setReplyInputs((prev) => ({ ...prev, [comment.id]: e.target.value }))
+            }
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleCreatePost(comment.id);
+              }
+            }}
             className="flex-1 p-2 border border-gray-300 rounded text-black bg-white"
           />
           <button
@@ -198,17 +206,15 @@ export default function QA() {
             Reply
           </button>
 
-          {/* 🗑️ Admin delete student comments */}
           {currentUserRole === 'admin' && (
             <button
-                onClick={() => handleDeleteComment(comment.id)}
-                className="text-red-600 hover:text-red-800"
-                title="Delete Comment"
+              onClick={() => handleDeleteComment(comment.id)}
+              className="text-red-600 hover:text-red-800"
+              title="Delete Comment"
             >
-                🗑️
+              🗑️
             </button>
-            )}
-
+          )}
 
           {comment.replies && comment.replies.length > 0 && (
             <button
@@ -221,10 +227,10 @@ export default function QA() {
         </div>
 
         {expandedComments[comment.id] && (comment.replies ?? []).length > 0 && (
-  <div className="ml-4 border-l-2 border-gray-300 pl-4">
-    {renderComments(comment.replies ?? [], depth + 1)}
-  </div>
-)}
+          <div className="ml-4 border-l-2 border-gray-300 pl-4">
+            {renderComments(comment.replies ?? [], depth + 1)}
+          </div>
+        )}
       </div>
     ));
 
@@ -257,6 +263,12 @@ export default function QA() {
               className="w-full border border-gray-300 p-2 rounded resize-none"
               value={newPost}
               onChange={(e) => setNewPost(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleCreatePost(null);
+                }
+              }}
               rows={3}
             />
             <button

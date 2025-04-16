@@ -1,3 +1,4 @@
+// ... existing imports
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -21,12 +22,11 @@ type Post = {
 export default function QA() {
   const [userRecordId, setUserRecordId] = useState<number | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<'student' | 'admin'>('student');
-
-  const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState('');
   const [replyInputs, setReplyInputs] = useState<Record<number, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  const router = useRouter();
 
   const handleAssignment = () => router.push('/dashboard/student/assignment');
   const handleQandA = () => router.push('/dashboard/student/qa');
@@ -72,7 +72,6 @@ export default function QA() {
     const { data, error } = await supabase
       .from('algoshpe_comment')
       .select('*')
-      .eq('assignment_id', 1)
       .order('created_at', { ascending: true });
 
     if (!error && data) {
@@ -112,10 +111,7 @@ export default function QA() {
 
   const handleCreatePost = async (parentId: number | null = null) => {
     const content = parentId ? replyInputs[parentId]?.trim() : newPost.trim();
-    if (!content) {
-      console.log('Post is empty');
-      return;
-    }
+    if (!content) return;
     if (!userRecordId) {
       console.log('User ID not found — cannot post');
       return;
@@ -124,7 +120,6 @@ export default function QA() {
     const insertData = {
       student_id: currentUserRole === 'student' ? userRecordId : null,
       admin_id: currentUserRole === 'admin' ? userRecordId : null,
-      assignment_id: 1,
       parent_id: parentId,
       message: content,
       is_private: false,
@@ -132,11 +127,10 @@ export default function QA() {
     };
 
     const { error } = await supabase.from('algoshpe_comment').insert(insertData);
-
     if (!error) {
-      console.log('Comment inserted successfully');
       if (parentId) {
         setReplyInputs((prev) => ({ ...prev, [parentId]: '' }));
+        setExpandedComments((prev) => ({ ...prev, [parentId]: true }));
       } else {
         setNewPost('');
       }
@@ -150,7 +144,7 @@ export default function QA() {
     setExpandedComments((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const renderComments = (comments: Post[], depth = 0) => (
+  const renderComments = (comments: Post[], depth = 0) =>
     comments.map((comment) => (
       <div key={comment.id} style={{ marginLeft: depth * 20 }} className="mt-4">
         <div className="bg-[#f0f4f3] p-4 rounded shadow">
@@ -160,12 +154,18 @@ export default function QA() {
             Posted by {comment.studentId ? 'Student' : 'Admin'} #{comment.studentId || comment.adminId}
           </div>
         </div>
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-2 items-center">
           <input
             type="text"
             placeholder="Reply..."
             value={replyInputs[comment.id] || ''}
             onChange={(e) => setReplyInputs((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleCreatePost(comment.id);
+              }
+            }}
             className="flex-1 p-2 border border-gray-300 rounded text-black bg-white"
           />
           <button
@@ -189,8 +189,7 @@ export default function QA() {
           </div>
         )}
       </div>
-    ))
-  );
+    ));
 
   return (
     <div className={montserrat.className}>
@@ -221,6 +220,12 @@ export default function QA() {
               className="w-full border border-gray-300 p-2 rounded resize-none"
               value={newPost}
               onChange={(e) => setNewPost(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleCreatePost(null);
+                }
+              }}
               rows={3}
             />
             <button
