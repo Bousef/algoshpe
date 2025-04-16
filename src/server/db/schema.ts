@@ -46,7 +46,6 @@ export const admins = createTable(
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     username: d.varchar({ length: 100 }).unique().notNull(),
     email: d.varchar({ length: 100 }).unique().notNull(),
-    auth_id: d.uuid("auth_id").unique(),
     password: d.varchar({ length: 100 }).notNull(),
   })
 );
