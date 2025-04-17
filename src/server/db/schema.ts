@@ -1,6 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
-import { type AdapterAccount } from "next-auth/adapters";
+import { customType, index, pgTableCreator, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -10,99 +9,187 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `algoshpe_${name}`);
 
-export const posts = createTable(
-  "post",
+//custom type for arrays
+const intArray = customType<{
+  data: number[];
+  driverData: number[];
+}>({
+  dataType() {
+    return 'integer[]';
+  }
+});
+
+//--------------------  Tables --------------------
+
+//student table
+export const students = createTable(
+  "student",
   (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 256 }),
-    createdById: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    createdAt: d
-      .timestamp({ withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-  }),
-  (t) => [
-    index("created_by_idx").on(t.createdById),
-    index("name_idx").on(t.name),
-  ]
+    ucf_id: d.integer().unique().notNull(),
+    first_name: d.varchar({ length: 100 }),
+    last_name: d.varchar({ length: 100 }),
+    username: d.varchar({ length: 100 }).unique().notNull(),
+    email: d.varchar({ length: 100 }).unique().notNull(),
+    password: d.varchar({ length: 100 }).notNull(),
+    attendance: d.integer(),
+    algoshpe_points: d.integer().default(0),
+    currentAssignments: intArray("currentAssignments"),
+    pastAssignments: intArray("pastAssignments"),
+  })
 );
 
-export const users = createTable("user", (d) => ({
-  id: d
-    .varchar({ length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: d.varchar({ length: 255 }),
-  email: d.varchar({ length: 255 }).notNull(),
-  emailVerified: d
-    .timestamp({
-      mode: "date",
-      withTimezone: true,
-    })
-    .default(sql`CURRENT_TIMESTAMP`),
-  image: d.varchar({ length: 255 }),
-}));
-
-export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
-}));
-
-export const accounts = createTable(
-  "account",
+//admin table
+export const admins = createTable(
+  "admin",
   (d) => ({
-    userId: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    type: d.varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
-    provider: d.varchar({ length: 255 }).notNull(),
-    providerAccountId: d.varchar({ length: 255 }).notNull(),
-    refresh_token: d.text(),
-    access_token: d.text(),
-    expires_at: d.integer(),
-    token_type: d.varchar({ length: 255 }),
-    scope: d.varchar({ length: 255 }),
-    id_token: d.text(),
-    session_state: d.varchar({ length: 255 }),
-  }),
-  (t) => [
-    primaryKey({ columns: [t.provider, t.providerAccountId] }),
-    index("account_user_id_idx").on(t.userId),
-  ]
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    username: d.varchar({ length: 100 }).unique().notNull(),
+    email: d.varchar({ length: 100 }).unique().notNull(),
+    password: d.varchar({ length: 100 }).notNull(),
+    auth_id: d.uuid().unique().notNull(),
+  })
 );
 
-export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+//assignments table
+export const assignments = createTable(
+  "assignment",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    title: d.varchar({ length: 100 }).notNull(),
+    description: d.text(),
+    due_date: d.date(),
+    submission_ids: intArray("submission_ids"),
+    starter_code: d.text(), // new
+    test_cases: d.text(),   // new (store as JSON string)
+    hints: d.text(),        // new (store as JSON string)
+  })
+  
+);
+
+
+//submissions table
+export const submissions = createTable(
+  "submission",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+
+    studentId: d.integer("student_id")
+      .references(() => students.id),
+
+    assignmentId: d.integer("assignment_id")
+      .notNull()
+      .references(() => assignments.id),
+
+    code: text("code").notNull(),
+    output: text("output").notNull(),
+    status: text("status").notNull(),
+    submittedAt: timestamp("submitted_at").defaultNow(),
+  })
+);
+
+
+export const comments = createTable("comment", (d) => {
+  return {
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+
+    studentId: d.integer("student_id").references(() => students.id), 
+
+    adminId: d.integer("admin_id").references(() => admins.id),
+
+    parent_id: d.integer("parent_id"),
+
+    is_private: d.boolean(),
+    message: d.text(),
+    created_at: d.timestamp().defaultNow(),
+  };
+});
+
+
+//notes table  - shpe tech committee task!
+// export const notes = createTable(
+//   "note",
+//   (d) => ({
+//     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+//     title: d.varchar({ length: 100 }).notNull(),
+//     content: d.text().notNull(), 
+//     adminId: d.integer("admin_id").notNull().references(() => admins.id),
+//     created_at: d.timestamp("created_at").defaultNow(),
+//   })
+// );
+
+
+//materials table 
+export const materials = createTable(
+  "material",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    title: d.varchar({length: 100}).notNull(),
+    file_url: d.varchar({ length: 255 }), // Column for storing file URL
+    uploaded: d.timestamp()
+  })
+);
+
+// --------------------  Relations --------------------
+
+//Admin Relations - assingments, comments, upload material
+export const adminsRelations = relations(admins, ({ many }) => ({
+  assignments: many(assignments),
+  comments: many(comments),
+  materials: many(materials)
+
 }));
 
-export const sessions = createTable(
-  "session",
-  (d) => ({
-    sessionToken: d.varchar({ length: 255 }).notNull().primaryKey(),
-    userId: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
-  }),
-  (t) => [index("t_user_id_idx").on(t.userId)]
-);
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+//Student Relations - submissions, comments, notes
+export const studentRelations = relations(students, ({ many }) => ({
+  submissions: many(submissions),
+  comments: many(comments)
+ // notes: many(notes)
 }));
 
-export const verificationTokens = createTable(
-  "verification_token",
-  (d) => ({
-    identifier: d.varchar({ length: 255 }).notNull(),
-    token: d.varchar({ length: 255 }).notNull(),
-    expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+//Submissions - single submission is related to a single student, single submission is related to a single assignment
+export const submissionsRelations = relations(submissions, ({ one }) => ({
+  student: one(students, {
+    fields: [submissions.studentId], 
+    references: [students.id]
   }),
-  (t) => [primaryKey({ columns: [t.identifier, t.token] })]
-);
+  assignment: one(assignments, {
+    fields: [submissions.assignmentId], 
+    references: [assignments.id]
+  })
+}));
+
+//Assignment - submission, comments
+export const assignmentsRelations = relations(assignments, ({ many }) => ({
+  submissions: many(submissions),
+  comments: many(comments),
+}));
+
+//Comments - 1 student, 1 assignment, 1 admin
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  parent: one(comments, {
+    fields: [comments.parent_id],
+    references: [comments.id],
+  }),
+  replies: many(comments),
+  student: one(students, {
+    fields: [comments.studentId],
+    references: [students.id],
+  }),
+  admin: one(admins, {
+    fields: [comments.adminId],
+    references: [admins.id],
+  }),
+}));
+
+
+// //Notes -
+// export const notesRelations = relations(notes, ({ one }) => ({
+//   admin: one(admins, {
+//     fields: [notes.adminId],
+//     references: [admins.id],
+//   }),
+// }));
+
+
+
