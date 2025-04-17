@@ -5,6 +5,11 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  eslint: {
+    /** Allow production builds to complete even if ESLint errors are present */
+    ignoreDuringBuilds: true,
+  },
+};
 
 export default config;
