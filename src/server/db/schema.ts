@@ -93,10 +93,8 @@ export const comments = createTable("comment", (d) => {
   return {
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
 
-    studentId: d.integer("student_id").references(() => students.id), 
-
-    adminId: d.integer("admin_id").references(() => admins.id),
-
+    student_id: d.integer("student_id").references(() => students.id), 
+    admin_id: d.integer("admin_id").references(() => admins.id),
     parent_id: d.integer("parent_id"),
 
     is_private: d.boolean(),
@@ -104,6 +102,7 @@ export const comments = createTable("comment", (d) => {
     created_at: d.timestamp().defaultNow(),
   };
 });
+
 
 
 //notes table  - shpe tech committee task!
@@ -173,14 +172,15 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
   }),
   replies: many(comments),
   student: one(students, {
-    fields: [comments.studentId],
+    fields: [comments.student_id],
     references: [students.id],
   }),
   admin: one(admins, {
-    fields: [comments.adminId],
+    fields: [comments.admin_id],
     references: [admins.id],
   }),
 }));
+
 
 
 // //Notes -
@@ -190,6 +190,10 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
 //     references: [admins.id],
 //   }),
 // }));
+
+
+
+
 
 
 
