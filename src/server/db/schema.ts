@@ -47,7 +47,7 @@ export const admins = createTable(
     username: d.varchar({ length: 100 }).unique().notNull(),
     email: d.varchar({ length: 100 }).unique().notNull(),
     password: d.varchar({ length: 100 }).notNull(),
-    auth_id: d.uuid().unique().notNull(),  // ✅ Add this line
+    auth_id: d.uuid().unique().notNull(),
   })
 );
 

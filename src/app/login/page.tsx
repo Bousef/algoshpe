@@ -6,46 +6,52 @@ import { useState } from "react";
 import { api } from "~/trpc/react";
 import { Montserrat } from 'next/font/google';
 
+// Import the Montserrat font
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '700'] });
 
 export default function Login() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(""); // 🔄 changed from email
   const [password, setPassword] = useState("");
   const loginMutation = api.auth.login.useMutation();
 
   const handleLogin = async () => {
     try {
       const response = await loginMutation.mutateAsync({
-        username,
-        password,
+        username: username,
+        password: password,
       });
-
-      if (!response?.token || !response?.role || !response.user) {
-        alert("Login failed. Invalid credentials or user not found.");
-        return;
-      }
-
+  
       localStorage.setItem("token", response.token);
-      localStorage.setItem("username", response.user.username);
-
-      if (response.role === "Student") {
-        localStorage.setItem("Student_ID", response.user.id.toString());
-        router.push("/dashboard/student/assignment");
-      } else if (response.role === "Admin") {
-        router.push("/dashboard/admin");
-      } else {
-        alert("Invalid role.");
+  
+      if (response.user && response.user.username) {
+        localStorage.setItem("username", response.user.username);
+        if(response?.role == 'Student')
+        {
+          localStorage.setItem("Student_ID", response.user.id.toString()); //need to store student's id for many apis
+        }
       }
+  
+      if (response?.role === 'Admin') {
+        router.push('/dashboard/admin');
+      } else if (response?.role === 'Student') {
+        router.push('/dashboard/student/assignment');
+      } else {
+        alert("Wrong Info");
+      }
+  
     } catch (err: any) {
       alert(err.message || "Login failed");
     }
+  };  
+  
+
+  const handleSignup = () => {
+    router.push('/signup');
   };
 
-  const handleSignup = () => router.push('/signup');
-
   return (
-    <div className={montserrat.className}>
+    <div className={montserrat.className}> {/* Apply the Montserrat font here */}
       <div className="min-h-screen bg-[#CAD2C5] text-white flex items-center justify-center">
         <div className="flex w-full max-w-6xl min-h-[600px] bg-[#52796F] rounded-2xl shadow-lg overflow-hidden">
           <div className="w-1/2 hidden md:flex items-center justify-center bg-[#354F52]">
@@ -64,7 +70,7 @@ export default function Login() {
 
             <input
               type="text"
-              placeholder="Username"
+              placeholder="Username" // 🔄 updated label
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full p-3 rounded-lg border border-black text-white"
