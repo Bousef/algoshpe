@@ -20,6 +20,7 @@ export const adminRouter = createTRPCRouter({
       username: z.string(),
       email: z.string().email(),
       password: z.string(),
+      auth_id: z.string()
     })
   )
   .mutation(async ({ input }) => {
@@ -53,6 +54,7 @@ export const adminRouter = createTRPCRouter({
         username: input.username,
         email: input.email,
         password: hashedPassword,
+        auth_id: input.auth_id
       })
       .returning();
 
