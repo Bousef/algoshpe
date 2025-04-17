@@ -58,7 +58,6 @@ export default function Resources() {
   const filteredResources = resources.filter((r) =>
     selectedTopic && r.file_url.includes(`resources/${selectedTopic}/`)
   );
-  
 
   const handleUpload = async () => {
     if (!file || !selectedTopic) return;
@@ -84,6 +83,7 @@ export default function Resources() {
     });
 
     if (insertError) console.error('DB insert error:', insertError.message);
+
     setFile(null);
     setUploading(false);
     fetchResources();
@@ -96,27 +96,13 @@ export default function Resources() {
           <div className="flex justify-between items-center w-full px-6">
             <Image src="/algoshpelogo.png" alt="AlgoSHPE Logo" width={160} height={160} className="rounded-lg w-24 h-auto" />
             <div className="flex gap-6 text-white">
-            <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                About
-              </div>
-              <div onClick={handleStudent} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Students
-              </div>
-              <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Assignments
-              </div>
-              <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Q & A
-              </div>
-              <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Resources
-              </div>
-              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Leaderboard
-              </div>
-              <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                Log Out
-              </div>
+              <div onClick={handleAbout} className="cursor-pointer hover:text-[#A1B0A6]">About</div>
+              <div onClick={handleStudent} className="cursor-pointer hover:text-[#A1B0A6]">Students</div>
+              <div onClick={handleAssignments} className="cursor-pointer hover:text-[#A1B0A6]">Assignments</div>
+              <div onClick={handleQandA} className="cursor-pointer hover:text-[#A1B0A6]">Q & A</div>
+              <div onClick={handleResources} className="cursor-pointer hover:text-[#A1B0A6]">Resources</div>
+              <div onClick={handleLeaderboard} className="cursor-pointer hover:text-[#A1B0A6]">Leaderboard</div>
+              <div onClick={handleLogOut} className="cursor-pointer hover:text-[#A1B0A6]">Log Out</div>
             </div>
           </div>
         </header>
