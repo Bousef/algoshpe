@@ -8,14 +8,15 @@ const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '700'
 
 export default function About() {
   const router = useRouter();
-
+  
   const handleAbout = () => router.push('/dashboard/admin/about');
   const handleAssignments = () => router.push('/dashboard/admin/assignment');
   const handleQandA = () => router.push('/dashboard/admin/qa');
-  const handleStudent = () => router.push('/dashboard/admin/student');
   const handleResources = () => router.push('/dashboard/admin/resources');
-  const handleLeaderboard = () => router.push('/leaderboard');
+  const handleLeaderboard = () => router.push('/dashboard/admin/leaderboard');
+  const handleStudent = () => router.push('/dashboard/admin/student');
   const handleLogOut = () => router.push('/');
+
 
   return (
     <div className={montserrat.className}>

@@ -37,6 +37,14 @@ export default function Resources() {
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
+  const handleAbout = () => router.push('/dashboard/admin/about');
+  const handleAssignments = () => router.push('/dashboard/admin/assignment');
+  const handleQandA = () => router.push('/dashboard/admin/qa');
+  const handleResources = () => router.push('/dashboard/admin/resources');
+  const handleLeaderboard = () => router.push('/dashboard/admin/leaderboard');
+  const handleStudent = () => router.push('/dashboard/admin/student');
+  const handleLogOut = () => router.push('/');
+
   const fetchResources = async () => {
     const { data, error } = await supabase.from('algoshpe_material').select('*');
     if (error) console.error('Error loading resources:', error.message);
@@ -88,13 +96,27 @@ export default function Resources() {
           <div className="flex justify-between items-center w-full px-6">
             <Image src="/algoshpelogo.png" alt="AlgoSHPE Logo" width={160} height={160} className="rounded-lg w-24 h-auto" />
             <div className="flex gap-6 text-white">
-              <div onClick={() => router.push('/dashboard/admin/about')} className="cursor-pointer hover:text-[#A1B0A6]">About</div>
-              <div onClick={() => router.push('/dashboard/admin/student')} className="cursor-pointer hover:text-[#A1B0A6]">Students</div>
-              <div onClick={() => router.push('/dashboard/admin/assignment')} className="cursor-pointer hover:text-[#A1B0A6]">Assignments</div>
-              <div onClick={() => router.push('/dashboard/admin/qa')} className="cursor-pointer hover:text-[#A1B0A6]">Q & A</div>
-              <div onClick={() => router.push('/dashboard/admin/resources')} className="cursor-pointer hover:text-[#A1B0A6]">Resources</div>
-              <div onClick={() => router.push('/dashboard/admin/leaderboard')} className="cursor-pointer hover:text-[#A1B0A6]">Leaderboard</div>
-              <div onClick={() => router.push('/')} className="cursor-pointer hover:text-[#A1B0A6]">Log Out</div>
+            <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                About
+              </div>
+              <div onClick={handleStudent} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Students
+              </div>
+              <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Assignments
+              </div>
+              <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Q & A
+              </div>
+              <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Resources
+              </div>
+              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Leaderboard
+              </div>
+              <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Log Out
+              </div>
             </div>
           </div>
         </header>
