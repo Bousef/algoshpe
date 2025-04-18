@@ -182,7 +182,7 @@ export default function QA() {
 </div>
           <p className="mt-1">{comment.content}</p>
           <div className="text-xs italic text-gray-600 mt-1">
-            Posted by {comment.username ? 'Student' : 'Admin'} {comment.username}
+            Posted by {comment.username}
           </div>
         </div>
         <div className="flex gap-2 mt-2 items-center">
