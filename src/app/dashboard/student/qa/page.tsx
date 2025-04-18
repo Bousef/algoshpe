@@ -17,6 +17,7 @@ type Post = {
   adminId?: number;
   parentId?: number | null;
   replies?: Post[];
+  username?: string;
 };
 
 export default function QA() {
@@ -72,14 +73,32 @@ export default function QA() {
   const fetchPosts = async () => {
     const { data, error } = await supabase
       .from('algoshpe_comment')
-      .select('*')
+      .select(`
+        id,
+        message,
+        created_at,
+        parent_id,
+        student_id,
+        admin_id,
+        algoshpe_student (
+          username
+        ),
+        algoshpe_admin (
+          username
+        )
+      `)
       .order('created_at', { ascending: true });
-
-    if (!error && data) {
+  
+    if (error) {
+      console.error('Failed to load posts:', error.message);
+      return;
+    }
+  
+    if (data) {
       const map: Record<number, Post> = {};
       const rootComments: Post[] = [];
-
-      data.forEach((d) => {
+  
+      data.forEach((d: any) => {
         const comment: Post = {
           id: d.id,
           content: d.message,
@@ -87,20 +106,23 @@ export default function QA() {
           studentId: d.student_id,
           adminId: d.admin_id,
           parentId: d.parent_id,
+          username: d.algoshpe_student?.username ?? d.algoshpe_admin?.username ?? 'Unknown',
           replies: [],
         };
+  
         map[comment.id] = comment;
+  
         if (comment.parentId) {
           map[comment.parentId]?.replies?.push(comment);
         } else {
           rootComments.push(comment);
         }
       });
+  
       setPosts(rootComments);
-    } else {
-      console.error('Failed to load posts:', error?.message);
     }
   };
+  
 
   useEffect(() => {
     fetchUserId();
@@ -149,10 +171,18 @@ export default function QA() {
     comments.map((comment) => (
       <div key={comment.id} style={{ marginLeft: depth * 20 }} className="mt-4">
         <div className="bg-[#f0f4f3] p-4 rounded shadow">
-          <div className="text-sm text-gray-500">{comment.createdAt.toLocaleString()}</div>
+        <div className="text-sm text-gray-500">
+        {comment.createdAt.toLocaleDateString('en-US', {
+  timeZone: 'America/New_York',
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+})}
+
+</div>
           <p className="mt-1">{comment.content}</p>
           <div className="text-xs italic text-gray-600 mt-1">
-            Posted by {comment.studentId ? 'Student' : 'Admin'} #{comment.studentId || comment.adminId}
+            Posted by {comment.username ? 'Student' : 'Admin'} {comment.username}
           </div>
         </div>
         <div className="flex gap-2 mt-2 items-center">
