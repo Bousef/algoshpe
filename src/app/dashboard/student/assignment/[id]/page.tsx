@@ -22,7 +22,7 @@ export default function AssignmentDetailPage() {
 
   const [assignmentId, setAssignmentId] = useState<number | null>(null);
   const [showHints, setShowHints] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light"); // ✅ default to light mode
   const [code, setCode] = useState<string>("");
   const [output, setOutput] = useState<string>("");
   const [studentId, setStudentId] = useState<number | null>(null);
@@ -52,14 +52,12 @@ export default function AssignmentDetailPage() {
     }
   );
 
-  // Load assignment ID from URL
   useEffect(() => {
     if (typeof id === "string") {
       setAssignmentId(parseInt(id));
     }
   }, [id]);
 
-  // Get student ID from localStorage
   useEffect(() => {
     const idFromStorage = localStorage.getItem("Student_ID");
     if (idFromStorage) {
@@ -67,15 +65,12 @@ export default function AssignmentDetailPage() {
     }
   }, []);
 
-  // Load submissions from query
   useEffect(() => {
     if (submissionIds && Array.isArray(submissionIds)) {
       setSubmissions(submissionIds);
     }
   }, [isSuccess, submissionIds]);
 
-  // Load starter code or submission code/output based on active tab
-  // Handle active tab switching
   useEffect(() => {
     if (activeTab === "new") {
       setIsCreatingNew(true);
@@ -89,9 +84,7 @@ export default function AssignmentDetailPage() {
       setOutput(selectedSubmission.output || "");
     }
   }, [activeTab, assignment, selectedSubmission]);
-  
 
-  //runs code in appropiate languages with all test cases
   const handleRun = () => {
     if (!assignment) return;
 
@@ -122,14 +115,12 @@ export default function AssignmentDetailPage() {
     runAllTests();
   };
 
-  //student presses submit -> should be creating submission
   const handleSubmit = async () => {
     try {
       if (!studentId || !assignmentId || !code || !output) {
         throw new Error("Missing Submission Data");
       }
 
-      //new submission
       const submission = await createSubmission.mutateAsync({
         studentId: studentId,
         assignmentId: assignmentId,
@@ -142,7 +133,6 @@ export default function AssignmentDetailPage() {
         throw new Error("Submission creation failed: No submission Returned");
       }
 
-      //add submission to assignment submission_ids array
       await addSubmissionToAssignment.mutateAsync({
         assignmentId: assignmentId,
         submissionId: submission.id,
@@ -181,7 +171,6 @@ export default function AssignmentDetailPage() {
         </header>
 
         <div className="flex min-h-screen bg-[#F5F5F5]">
-          {/* LEFT PANEL */}
           <div className="w-1/3 p-10 bg-white shadow-lg">
             <h1 className="text-3xl font-bold mb-4">{assignment.title}</h1>
             <p className="text-gray-700 mb-4">{assignment.description}</p>
@@ -215,9 +204,7 @@ export default function AssignmentDetailPage() {
             </div>
           </div>
 
-          {/* RIGHT PANEL */}
           <div className="w-2/3 p-10 flex flex-col gap-4">
-            {/* Tabs */}
             {submissions.length > 0 && (
               <div className="flex gap-2 border-b border-gray-300 mb-2">
                 {submissions.map((id, index) => (

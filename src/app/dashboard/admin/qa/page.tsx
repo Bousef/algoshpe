@@ -1,4 +1,3 @@
-// ... existing imports
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -17,6 +16,7 @@ type Post = {
   adminId?: number;
   parentId?: number | null;
   replies?: Post[];
+  username?: string;
 };
 
 export default function QA() {
@@ -26,6 +26,7 @@ export default function QA() {
   const [newPost, setNewPost] = useState('');
   const [replyInputs, setReplyInputs] = useState<Record<number, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  const [isPosting, setIsPosting] = useState(false);
   const router = useRouter();
 
   const handleAbout = () => router.push('/dashboard/admin/about');
@@ -36,13 +37,9 @@ export default function QA() {
   const handleStudent = () => router.push('/dashboard/admin/student');
   const handleLogOut = () => router.push('/');
 
-
   const fetchUserId = async () => {
     const username = localStorage.getItem('username');
-    if (!username) {
-      console.log('No username found in localStorage');
-      return;
-    }
+    if (!username) return;
 
     const { data: studentData } = await supabase
       .from('algoshpe_student')
@@ -74,14 +71,32 @@ export default function QA() {
   const fetchPosts = async () => {
     const { data, error } = await supabase
       .from('algoshpe_comment')
-      .select('*')
+      .select(`
+        id,
+        message,
+        created_at,
+        parent_id,
+        student_id,
+        admin_id,
+        algoshpe_student (
+          username
+        ),
+        algoshpe_admin (
+          username
+        )
+      `)
       .order('created_at', { ascending: true });
 
-    if (!error && data) {
+    if (error) {
+      console.error('Failed to load posts:', error.message);
+      return;
+    }
+
+    if (data) {
       const map: Record<number, Post> = {};
       const rootComments: Post[] = [];
 
-      data.forEach((d) => {
+      data.forEach((d: any) => {
         const comment: Post = {
           id: d.id,
           content: d.message,
@@ -89,18 +104,20 @@ export default function QA() {
           studentId: d.student_id,
           adminId: d.admin_id,
           parentId: d.parent_id,
+          username: d.algoshpe_student?.username ?? d.algoshpe_admin?.username ?? 'Unknown',
           replies: [],
         };
+
         map[comment.id] = comment;
+
         if (comment.parentId) {
           map[comment.parentId]?.replies?.push(comment);
         } else {
           rootComments.push(comment);
         }
       });
+
       setPosts(rootComments);
-    } else {
-      console.error('Failed to load posts:', error?.message);
     }
   };
 
@@ -113,12 +130,16 @@ export default function QA() {
   }, []);
 
   const handleCreatePost = async (parentId: number | null = null) => {
+    if (isPosting) return;
+
     const content = parentId ? replyInputs[parentId]?.trim() : newPost.trim();
     if (!content) return;
     if (!userRecordId) {
       console.log('User ID not found — cannot post');
       return;
     }
+
+    setIsPosting(true);
 
     const insertData = {
       student_id: currentUserRole === 'student' ? userRecordId : null,
@@ -132,14 +153,17 @@ export default function QA() {
     const { error } = await supabase.from('algoshpe_comment').insert(insertData);
     if (!error) {
       if (parentId) {
-      setReplyInputs((prev) => ({ ...prev, [parentId]: '' }));
-      setExpandedComments((prev) => ({ ...prev, [parentId]: true }));
-    }
-      else setNewPost('');
-      fetchPosts();
+        setReplyInputs((prev) => ({ ...prev, [parentId]: '' }));
+        setExpandedComments((prev) => ({ ...prev, [parentId]: true }));
+      } else {
+        setNewPost('');
+      }
+      await fetchPosts();
     } else {
       console.error('Error creating comment:', error.message);
     }
+
+    setIsPosting(false);
   };
 
   const handleDeleteComment = async (commentId: number) => {
@@ -180,10 +204,17 @@ export default function QA() {
     comments.map((comment) => (
       <div key={comment.id} style={{ marginLeft: depth * 20 }} className="mt-4">
         <div className="bg-[#f0f4f3] p-4 rounded shadow">
-          <div className="text-sm text-gray-500">{comment.createdAt.toLocaleString()}</div>
+          <div className="text-sm text-gray-500">
+            {comment.createdAt.toLocaleDateString('en-US', {
+              timeZone: 'America/New_York',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </div>
           <p className="mt-1">{comment.content}</p>
           <div className="text-xs italic text-gray-600 mt-1">
-            Posted by {comment.studentId ? 'Student' : 'Admin'} #{comment.studentId || comment.adminId}
+            Posted by {comment.username}
           </div>
         </div>
         <div className="flex gap-2 mt-2 items-center">
@@ -241,47 +272,30 @@ export default function QA() {
     <div className={montserrat.className}>
       <div className="bg-[#CAD2C5] min-h-screen">
         <header className="bg-[#354F52] p-2">
-                  <div className="flex justify-between items-center w-full px-6">
-                    {/* Logo on the left */}
-                    <div className="flex items-center">
-                      <Image
-                        src="/algoshpelogo.png"
-                        alt="AlgoSHPE Logo"
-                        width={160}
-                        height={160}
-                        className="rounded-lg w-24 h-auto"
-                      />
-                    </div>
-        
-                    {/* Navigation links on the right */}
-                    <div className="flex gap-6">
-                      <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                        About
-                      </div>
-                      <div onClick={handleStudent} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                        Students
-                      </div>
-                      <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                        Assignments
-                      </div>
-                      <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                        Q & A
-                      </div>
-                      <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                        Resources
-                      </div>
-                      <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                        Leaderboard
-                      </div>
-                      <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
-                        Log Out
-                      </div>
-                    </div>
-                  </div>
-                </header>
+          <div className="flex justify-between items-center w-full px-6">
+            <div className="flex items-center">
+              <Image
+                src="/algoshpelogo.png"
+                alt="AlgoSHPE Logo"
+                width={160}
+                height={160}
+                className="rounded-lg w-24 h-auto"
+              />
+            </div>
+
+            <div className="flex gap-6">
+              <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">About</div>
+              <div onClick={handleStudent} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Students</div>
+              <div onClick={handleAssignments} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Assignments</div>
+              <div onClick={handleQandA} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Q & A</div>
+              <div onClick={handleResources} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Resources</div>
+              <div onClick={handleLeaderboard} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Leaderboard</div>
+              <div onClick={handleLogOut} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">Log Out</div>
+            </div>
+          </div>
+        </header>
 
         <main className="max-w-2xl mx-auto py-8 px-4">
-
           <div className="bg-white p-4 rounded-lg shadow-md">
             <textarea
               placeholder="What's on your mind?"
@@ -298,9 +312,10 @@ export default function QA() {
             />
             <button
               onClick={() => handleCreatePost(null)}
-              className="bg-[#354F52] text-white px-4 py-2 mt-2 rounded hover:bg-[#2f4447]"
+              disabled={isPosting}
+              className={`bg-[#354F52] text-white px-4 py-2 mt-2 rounded hover:bg-[#2f4447] ${isPosting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Post
+              {isPosting ? 'Posting...' : 'Post'}
             </button>
           </div>
 
