@@ -13,6 +13,7 @@ import { students } from "src/server/db/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";  
+import { idText } from "typescript";
 
 export const studentRouter = createTRPCRouter({
 
@@ -64,15 +65,43 @@ export const studentRouter = createTRPCRouter({
     }),
 
   //get all students
-  getAllStudents: publicProcedure
-    .input(z.object({ page: z.number().optional() }).optional())
-    .query(async ({ input }) => {
-      const page = input?.page || 1;
-      const limit = 10;
-      const offset = (page - 1) * limit;
+  getAllStudents: publicProcedure.query(async () => {
+    return await db
+      .select()
+      .from(students)
+      .orderBy(students.first_name);
+  }),
 
-      return await db.select().from(students).limit(limit).offset(offset);
-    }),
+  //assign student to id
+  assignStudentsToAssignment: publicProcedure
+  .input(z.object({
+    assignmentId: z.number(),
+    studentIds: z.array(z.number()),
+  }))
+  .mutation(async ({ input, ctx }) => {
+    const { assignmentId, studentIds } = input;
+
+    await Promise.all(studentIds.map(async (studentId) => {
+      // Get the current assignments for the student
+      const student = await db
+        .select()
+        .from(students)
+        .where(eq(students.id, studentId));
+
+      if (student[0]!=null && student.length > 0) {
+        const updatedAssignments = [...(student[0].currentAssignments || []), assignmentId];
+
+        // Update the student's currentAssignments
+        await db
+          .update(students)
+          .set({ currentAssignments: updatedAssignments })
+          .where(eq(students.id, studentId));
+      }
+    }));
+
+    return { success: true };
+  }),
+
 
   //get one student by id
   getStudentById: publicProcedure

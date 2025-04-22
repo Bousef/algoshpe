@@ -13,9 +13,10 @@ export default function StudentGridPage() {
   const { data: students = [] } = api.student.getAllStudents.useQuery();
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const [showInputModal, setShowInputModal] = useState<null | { studentId: number }>(null);
+  const [showInputModal, setShowInputModal] = useState<null | any>(null); // Changed type to any
   const [modalType, setModalType] = useState<"points" | "attendance" | null>(null);
   const [inputValue, setInputValue] = useState('');
+  const [currentPoints, setCurrentPoints] = useState<number>(0);
   const utils = api.useUtils();
 
 
@@ -116,13 +117,28 @@ export default function StudentGridPage() {
                     {openMenuId === student.id && (
                       <div ref={menuRef} className="absolute right-0 mt-1 w-40 bg-white border rounded shadow-md z-10">
                         <button
-                          onClick={() => deleteStudent.mutate({ id: student.id })}
+                          onClick={function handleDeleteClick() {
+                            console.log("Deleting student with ID:", student.id);
+                            deleteStudent.mutate({ id: student.id });
+                          }}
                           className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
                         >
                           Remove Student
                         </button>
-                        <button onClick={() => { setShowInputModal({ studentId: student.id }); setModalType("points"); }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Add Points</button>
-                        <button onClick={() => { setShowInputModal({ studentId: student.id }); setModalType("attendance"); }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+                        <button
+                          onClick={() => {
+                            setShowInputModal(student);  // Set the full student object
+                            setModalType("points");
+                            setCurrentPoints(student.algoshpe_points ?? 0);
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                        >
+                          Add Points
+                        </button>
+                        <button onClick={() => { 
+                          setShowInputModal(student);  // Set the full student object
+                          setModalType("attendance"); 
+                        }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
                           Add Attendance
                         </button>
                       </div>
@@ -130,6 +146,7 @@ export default function StudentGridPage() {
                   </div>
                   <p className="text-2xl font-extrabold text-[#354F52]">{fullName}</p>
                   <p className="text-lg text-gray-600 mt-2">Points: {student.algoshpe_points ?? 0}</p>
+                  <p className="text-lg text-gray-600 mt-2">Attendance: {student.attendance ?? 0}</p>
                 </div>
               );
             })}
@@ -151,20 +168,45 @@ export default function StudentGridPage() {
             />
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowInputModal(null)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
-            <button
-              onClick={() => {
-                const value = parseInt(inputValue);
-                if (!isNaN(value)) {
-                  const updateData = modalType === "points"
-                    ? { id: showInputModal.studentId, algoshpe_points: value }
-                    : { id: showInputModal.studentId, attendance: value };
-                  updateStudent.mutate(updateData);
-                }
-              }}
-              className="px-4 py-2 bg-[#52796F] text-white rounded"
-            >
-              Confirm
-            </button>
+              <button
+                onClick={() => {
+                  const value = parseInt(inputValue);
+                  if (!isNaN(value)) {
+                    const student = showInputModal;  // Use the full student object
+
+                    // Get the current attendance and points from the student object
+                    const currentAttendance = student.attendance ?? 0;  // Default to 0 if no attendance
+                    const currentPoints = student.algoshpe_points ?? 0;  // Default to 0 if no points
+
+                    // Add the new attendance value to the current attendance
+                    const updatedAttendance = currentAttendance + value;
+
+                    // Calculate new points by adding 10 for each attendance
+                    const newPoints = currentPoints + (value * 10);
+
+                    // Prepare the update data with both attendance and points
+                    const updateData = modalType === "points"
+                      ? { id: student.id, algoshpe_points: currentPoints + value } // Adding points
+                      : { id: student.id, attendance: updatedAttendance, algoshpe_points: newPoints }; // Adding attendance and points
+
+                    // Trigger the mutation to update the student data
+                    updateStudent.mutate(updateData, {
+                      onSuccess: () => {
+                        utils.student.getAllStudents.invalidate();  // Refetch the student data
+                        setShowInputModal(null);  // Close the modal
+                        setInputValue('');  // Clear the input field
+                      },
+                      onError: (error) => {
+                        console.error("Error updating student:", error);
+                        alert("Failed to update student data.");
+                      },
+                    });
+                  }
+                }}
+                className="px-4 py-2 bg-[#52796F] text-white rounded"
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>
@@ -172,4 +214,3 @@ export default function StudentGridPage() {
     </div>
   );
 }
-

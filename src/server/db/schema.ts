@@ -59,6 +59,7 @@ export const assignments = createTable(
     title: d.varchar({ length: 100 }).notNull(),
     description: d.text(),
     due_date: d.date(),
+    level: d.varchar({ length: 100 }).notNull(),
     submission_ids: intArray("submission_ids"),
     starter_code: d.text(), // new
     test_cases: d.text(),   // new (store as JSON string)
@@ -93,7 +94,7 @@ export const comments = createTable("comment", (d) => {
   return {
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
 
-    student_id: d.integer("student_id").references(() => students.id), 
+    student_id: d.integer("student_id").references(() => students.id, { onDelete: "cascade" }), 
     admin_id: d.integer("admin_id").references(() => admins.id),
     parent_id: d.integer("parent_id"),
 

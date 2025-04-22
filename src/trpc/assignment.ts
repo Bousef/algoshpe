@@ -14,6 +14,7 @@ export const assignmentRouter = createTRPCRouter({
         description: z.string(),
         due_date: z.date(),
         submission_ids: z.array(z.number()).optional(),
+        level: z.string()
       })
     )
     .mutation(async ({ input }) => {
@@ -43,6 +44,7 @@ export const assignmentRouter = createTRPCRouter({
             title: assignments.title,
             description: assignments.description,
             due_date: assignments.due_date,
+            level: assignments.level
           })
           .from(assignments)
           .where(
@@ -68,6 +70,7 @@ export const assignmentRouter = createTRPCRouter({
             title: assignments.title,
             description: assignments.description,
             due_date: assignments.due_date,
+            level: assignments.level
           })
           .from(assignments)
           .where(
@@ -125,13 +128,21 @@ export const assignmentRouter = createTRPCRouter({
   
     //get all Assignments
     getAssignments: publicProcedure
-    .input(z.object({ page: z.number().optional() }).optional())
-    .query(async ({ input }) => {
-        const page = input?.page || 1;
-        const limit = 10;
-        const offset = (page - 1) * limit;
+      .query(async () => {
+        try {
+          const assignmentsResult = await db
+            .select()
+            .from(assignments);
 
-        return await db.select().from(assignments).limit(limit).offset(offset);
+          if (!assignmentsResult || assignmentsResult.length === 0) {
+            throw new Error("No assignments found.");
+          }
+
+          return assignmentsResult;
+        } catch (error) {
+          console.error("Error fetching assignments:", error);
+          throw new Error("An error occurred while fetching assignments.");
+        }
     }),
 
     //get one assignment by id
@@ -173,6 +184,7 @@ export const assignmentRouter = createTRPCRouter({
         title: z.string().optional(),
         description: z.string().optional(),  
         due_date: z.date().optional(),
+        level: z.string().optional()
       })
     )
     .mutation(async ({ input }) => {
@@ -182,7 +194,7 @@ export const assignmentRouter = createTRPCRouter({
       if (input.title) updateData.title = input.title;
       if (input.description) updateData.description = input.description;
       if (input.due_date) updateData.due_date = input.due_date.toISOString().split('T')[0];  
-  
+      if (input.level) updateData.level = input.level;
 
       const updatedAssignment = await db.update(assignments)
         .set(updateData)  

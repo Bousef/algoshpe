@@ -52,6 +52,14 @@ export default function AssignmentDetailPage() {
     }
   );
 
+  const levelColors: Record<string, string> = {
+    citronaut: "#CAD2C5",
+    knight: "#52796F",
+    pegasus: "#354F52",
+  };
+
+
+  // Load assignment ID from URL
   useEffect(() => {
     if (typeof id === "string") {
       setAssignmentId(parseInt(id));
@@ -173,6 +181,18 @@ export default function AssignmentDetailPage() {
         <div className="flex min-h-screen bg-[#F5F5F5]">
           <div className="w-1/3 p-10 bg-white shadow-lg">
             <h1 className="text-3xl font-bold mb-4">{assignment.title}</h1>
+              {/* Display level under the title with corresponding color */}
+              {assignment.level && (
+                <p
+                  className="text-sm font-semibold mb-4"
+                  style={{ color: levelColors[assignment.level.toLowerCase()] }}
+                >
+               
+                  Level: {assignment.level.charAt(0).toUpperCase() + assignment.level.slice(1)}
+                </p>
+             
+              )}
+
             <p className="text-gray-700 mb-4">{assignment.description}</p>
             <p className="text-sm text-gray-500 mb-6">Due Date: {assignment.due_date ?? "No due date"}</p>
 

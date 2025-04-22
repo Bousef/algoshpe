@@ -1,0 +1,1 @@
+ALTER TABLE "algoshpe_assignment" ADD COLUMN "level" varchar(100) NOT NULL;
