@@ -70,6 +70,9 @@ export default function Leaderboard() {
             <div onClick={handleAbout} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 About
               </div>
+              <div onClick={handleStudent} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
+                Students
+              </div>
               <div onClick={handleAssignment} className="text-white cursor-pointer hover:text-[#A1B0A6] transition duration-200">
                 Assignments
               </div>
