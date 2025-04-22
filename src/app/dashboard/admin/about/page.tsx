@@ -94,14 +94,14 @@ export default function About() {
       </div>
 
         {/* Yousef Section */}
-        <div className="bg-white rounded-2xl shadow-md p-8 flex flex-col items-center text-center max-w-2xl mx-auto">
-          <Image
-            src="/teammate.png"
+      <div className="bg-white rounded-2xl shadow-md p-8 mb-12 flex flex-col items-center text-center max-w-2xl mx-auto">
+        <div className="relative w-[140px] aspect-square overflow-hidden rounded-full mb-4">          <Image
+            src="/yousef-headshot.png"
             alt="Yousef"
-            width={120}
-            height={120}
-            className="rounded-full mb-4"
+            fill
+            className="object-cover"
           />
+          </div>
           <h2 className="text-2xl font-bold mb-2">Yousef Osman</h2>
           <p className="text-gray-700">
             Hey! I'm Yousef, one of the developers behind AlgoSHPE. I’m all about great UI, smooth design, and building tools that make learning programming fun and approachable!

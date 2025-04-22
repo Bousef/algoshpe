@@ -192,7 +192,6 @@ export default function AssignmentDetailPage() {
                 </p>
              
               )}
-                  console.log(assignment.level);
 
             <p className="text-gray-700 mb-4">{assignment.description}</p>
             <p className="text-sm text-gray-500 mb-6">Due Date: {assignment.due_date ?? "No due date"}</p>

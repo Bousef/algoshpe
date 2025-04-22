@@ -16,8 +16,12 @@ export default function AssignmentPage() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [showInputModal, setShowInputModal] = useState<null | { assignmentId: number }>(null);
-  const [modalType, setModalType] = useState<"edit" | "delete" | "create" | null>(null);  const [inputValue, setInputValue] = useState('');
+  const [showStudents, setShowStudents] = useState<null | any>(null); // when assigning to student
+  const [allStudents, setAllStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
+  const [modalType, setModalType] = useState<"edit" | "delete" | "create"  | "assign" | null>(null);  const [inputValue, setInputValue] = useState('');
   const [newAssignmentLevel, setNewAssignmentLevel] = useState<string | null>(null);
+
   const [newAssignmentData, setNewAssignmentData] = useState({
     title: '',
     description: '',
@@ -91,6 +95,18 @@ export default function AssignmentPage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  /*
+  const { data: studentsData } = api.student.getAllStudents.useQuery(undefined, {
+    enabled: modalType === "assign",
+    onSuccess: (students: any) => {
+      const sorted = [...students].sort((a, b) =>
+        a.first_name.localeCompare(b.first_name)
+      );
+      setAllStudents(sorted);
+      setSelectedStudents([]);
+    },
+  });*/
 
   const sortedAssignments = [...assignments].sort((a, b) => {
     const dateA = new Date(a.due_date ?? "").getTime();
@@ -194,6 +210,7 @@ export default function AssignmentPage() {
                           >
                             Remove Assignment
                           </button>
+                          <button onClick={() => { setShowStudents({ assignmentId: assignment.id }); setModalType("assign"); }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Assign to Student/s</button>
                           <button onClick={() => { setShowInputModal({ assignmentId: assignment.id }); setModalType("edit"); }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Edit Assignment</button>
                         </div>
                       )}
@@ -241,6 +258,7 @@ export default function AssignmentPage() {
                           >
                             Remove Assignment
                           </button>
+                          <button onClick={() => { setShowStudents({ assignmentId: assignment.id }); setModalType("assign"); }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Assign to Student/s</button>
                           <button onClick={() => { setShowInputModal({ assignmentId: assignment.id }); setModalType("edit"); }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Edit Assignment</button>
                         </div>
                       )}
@@ -288,6 +306,7 @@ export default function AssignmentPage() {
                           >
                             Remove Assignment
                           </button>
+                          <button onClick={() => { setShowStudents({ assignmentId: assignment.id }); setModalType("assign"); }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Assign to Student/s</button>
                           <button onClick={() => { setShowInputModal({ assignmentId: assignment.id }); setModalType("edit"); }} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Edit Assignment</button>
                         </div>
                       )}
@@ -302,6 +321,42 @@ export default function AssignmentPage() {
             </div>
           </div>
         </div> 
+
+
+        {showStudents && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-md w-80">
+            <h2 className="text-lg font-semibold mb-4">
+              {modalType === "edit" ? "Edit Assignment" : "Remove Assignment"}
+            </h2>
+            {modalType === "edit" && (
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="w-full p-2 border rounded mb-4"
+                placeholder="Assignment Title"
+              />
+            )}
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowInputModal(null)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+              <button
+                /*onClick={() => {
+                  if (modalType === "edit") {
+                    updateAssignment.mutate({ id: showInputModal.assignmentId, title: inputValue });
+                  } else {
+                    deleteAssignment.mutate({ id: showInputModal.assignmentId });
+                  }
+                }}*/
+                className="px-4 py-2 bg-[#52796F] text-white rounded"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showInputModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-md w-80">

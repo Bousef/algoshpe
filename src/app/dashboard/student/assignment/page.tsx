@@ -126,68 +126,70 @@ export default function Assignment() {
             {/* Current Assignments */}
             <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg text-white">
             <h2 className="text-2xl text-center font-semibold mb-4">Current Assignments</h2>
-            {loadingIds ? null : Object.values(currentGrouped).every(group => group.length === 0) ? (
+            {loadingIds ? null : currentAssignments.length === 0 ? (
                 <div className="text-center text-white text-lg mt-8">No current assignments.</div>
             ) : (
-                Object.entries(currentGrouped).map(([level, assignments]) => (
-                assignments.length > 0 && (
-                    <div key={level}>
-                    <h3 className="text-lg font-bold" style={{ color: levelColors[level] }}>
-                        {level.charAt(0).toUpperCase() + level.slice(1)}
-                    </h3>
-                    {assignments.map((assignment) => (
-                        <div
-                        key={assignment.id}
-                        onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
-                        className="mb-4 cursor-pointer p-4 bg-white rounded-lg text-black hover:shadow-lg transition"
-                        >
-                       <h4 className="text-xl font-bold">{assignment.title}</h4>
-                       <p
-                            className="text-sm italic font-semibold mb-1"
-                            style={{ color: levelColors[assignment.level?.toLowerCase() ?? 'citronaut'] }}
-                            >
-                            Level: {assignment.level?.charAt(0).toUpperCase() + assignment.level?.slice(1) ?? 'Citronaut'}
-                            </p>
-                        <p>{assignment.description}</p>
-                        <p className="text-sm text-gray-500">Due: {assignment.due_date}</p>
-                        </div>
-                    ))}
+                [...currentAssignments]
+                  .sort((a, b) => {
+                    const levelOrder = ['citronaut', 'knight', 'pegasus'];
+                    const levelA = a.level?.toLowerCase() ?? 'citronaut';
+                    const levelB = b.level?.toLowerCase() ?? 'citronaut';
+                    const levelCompare = levelOrder.indexOf(levelA) - levelOrder.indexOf(levelB);
+                    if (levelCompare !== 0) return levelCompare;
+                    return new Date(a.due_date ?? "").getTime() - new Date(b.due_date ?? "").getTime();
+                  })
+                  .map((assignment) => (
+                    <div
+                      key={assignment.id}
+                      onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
+                      className="mb-4 cursor-pointer p-4 bg-white rounded-lg text-black hover:shadow-lg transition"
+                    >
+                      <h4 className="text-xl font-bold">{assignment.title}</h4>
+                      <p
+                        className="text-sm italic font-semibold mb-1"
+                        style={{ color: levelColors[assignment.level?.toLowerCase() ?? 'citronaut'] }}
+                      >
+                        Level: {assignment.level?.charAt(0).toUpperCase() + assignment.level?.slice(1) ?? 'Citronaut'}
+                      </p>
+                      <p>{assignment.description}</p>
+                      <p className="text-sm text-gray-500">Due: {assignment.due_date}</p>
                     </div>
-                )
-                ))
+                  ))
             )}
             </div>
 
             {/* Past Assignments */}
             <div className="flex-1 bg-[#A1B0A6] p-6 rounded-lg text-white">
               <h2 className="text-2xl text-center font-semibold text-white mb-4">Past Assignments</h2>
-              {loadingIds ? null : Object.values(pastGrouped).every(group => group.length === 0) ? (
+              {loadingIds ? null : pastAssignments.length === 0 ? (
                 <div className="text-center text-white text-lg mt-8">No past assignments.</div>
               ) : (
-                Object.entries(pastGrouped).map(([level, assignments]) => (
-                  assignments.length > 0 && (
-                    <div key={level}>
-                      <h3 className="text-lg font-bold" style={{ color: levelColors[level] }}>{level.charAt(0).toUpperCase() + level.slice(1)}</h3>
-                      {assignments.map((assignment) => (
-                        <div
-                          key={assignment.id}
-                          onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
-                          className="mb-4 cursor-pointer p-4 bg-white rounded-lg text-black hover:shadow-lg transition"
-                        >
-                         <h4 className="text-xl font-bold">{assignment.title}</h4>
-                         <p
-                            className="text-sm italic font-semibold mb-1"
-                            style={{ color: levelColors[assignment.level?.toLowerCase() ?? 'citronaut'] }}
-                            >
-                            Level: {assignment.level?.charAt(0).toUpperCase() + assignment.level?.slice(1) ?? 'Citronaut'}
-                            </p>
-                         <p>{assignment.description}</p>
-                        <p className="text-sm text-gray-600">Due: {assignment.due_date}</p>
-                        </div>
-                      ))}
+                [...pastAssignments]
+                  .sort((a, b) => {
+                    const levelOrder = ['citronaut', 'knight', 'pegasus'];
+                    const levelA = a.level?.toLowerCase() ?? 'citronaut';
+                    const levelB = b.level?.toLowerCase() ?? 'citronaut';
+                    const levelCompare = levelOrder.indexOf(levelA) - levelOrder.indexOf(levelB);
+                    if (levelCompare !== 0) return levelCompare;
+                    return new Date(a.due_date ?? "").getTime() - new Date(b.due_date ?? "").getTime();
+                  })
+                  .map((assignment) => (
+                    <div
+                      key={assignment.id}
+                      onClick={() => router.push(`/dashboard/student/assignment/${assignment.id}`)}
+                      className="mb-4 cursor-pointer p-4 bg-white rounded-lg text-black hover:shadow-lg transition"
+                    >
+                      <h4 className="text-xl font-bold">{assignment.title}</h4>
+                      <p
+                        className="text-sm italic font-semibold mb-1"
+                        style={{ color: levelColors[assignment.level?.toLowerCase() ?? 'citronaut'] }}
+                      >
+                        Level: {assignment.level?.charAt(0).toUpperCase() + assignment.level?.slice(1) ?? 'Citronaut'}
+                      </p>
+                      <p>{assignment.description}</p>
+                      <p className="text-sm text-gray-600">Due: {assignment.due_date}</p>
                     </div>
-                  )
-                ))
+                  ))
               )}
             </div>
 
@@ -201,14 +203,21 @@ export default function Assignment() {
                   </p>
                   <Pie
                     data={{
-                      labels: ['Submitted', 'Remaining'],
+                      labels: ['Citronaut', 'Knight', 'Pegasus', 'Remaining'],
                       datasets: [
                         {
                           data: [
-                            assignmentsSubmittedCount,
-                            Math.max(totalAssignmentCount - assignmentsSubmittedCount, 0),
+                            allSubmissions.filter(s => (currentAssignments.find(a => a.id === s.assignmentId)?.level?.toLowerCase() ?? '') === 'citronaut').length,
+                            allSubmissions.filter(s => (currentAssignments.find(a => a.id === s.assignmentId)?.level?.toLowerCase() ?? '') === 'knight').length,
+                            allSubmissions.filter(s => (currentAssignments.find(a => a.id === s.assignmentId)?.level?.toLowerCase() ?? '') === 'pegasus').length,
+                            Math.max((totalAssignmentCount ?? 0) - assignmentsSubmittedCount, 0),
                           ],
-                          backgroundColor: ['#52796F', '#DADADA'],
+                          backgroundColor: [
+                            levelColors['citronaut'],
+                            levelColors['knight'],
+                            levelColors['pegasus'],
+                            '#DADADA',
+                          ],
                           borderWidth: 1,
                         },
                       ],
