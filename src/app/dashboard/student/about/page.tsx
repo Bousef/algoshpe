@@ -100,7 +100,7 @@ export default function About() {
           </div>
           <h2 className="text-2xl font-bold mb-2">Yousef Osman</h2>
           <p className="text-gray-700">
-            Hey! I'm Yousef, one of the developers behind AlgoSHPE. I’m all about great UI, smooth design, and building tools that make learning programming fun and approachable!
+            Hey! I'm Yousef, one of the developers behind AlgoSHPE. I started coding in 2022 and really enjoy the career path. I enjoy learning new technologies and creating applications.
           </p>
         </div>
       </main>
