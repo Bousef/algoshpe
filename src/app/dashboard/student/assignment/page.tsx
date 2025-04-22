@@ -125,10 +125,10 @@ export default function Assignment() {
           <div className="flex space-x-4 mb-8">
             {/* Current Assignments */}
             <div className="flex-1 bg-[#5C6B73] p-6 rounded-lg text-white">
-            <h2 className="text-2xl text-center font-semibold mb-4">Current Assignments</h2>
-            {loadingIds ? null : currentAssignments.length === 0 ? (
+              <h2 className="text-2xl text-center font-semibold mb-4">Current Assignments</h2>
+              {loadingIds ? null : currentAssignments.length === 0 ? (
                 <div className="text-center text-white text-lg mt-8">No current assignments.</div>
-            ) : (
+              ) : (
                 [...currentAssignments]
                   .sort((a, b) => {
                     const levelOrder = ['citronaut', 'knight', 'pegasus'];
@@ -149,13 +149,15 @@ export default function Assignment() {
                         className="text-sm italic font-semibold mb-1"
                         style={{ color: levelColors[assignment.level?.toLowerCase() ?? 'citronaut'] }}
                       >
-                        Level: {assignment.level?.charAt(0).toUpperCase() + assignment.level?.slice(1) ?? 'Citronaut'}
+                        Level: {assignment.level
+                          ? assignment.level.charAt(0).toUpperCase() + assignment.level.slice(1)
+                          : 'Citronaut'}
                       </p>
                       <p>{assignment.description}</p>
                       <p className="text-sm text-gray-500">Due: {assignment.due_date}</p>
                     </div>
                   ))
-            )}
+              )}
             </div>
 
             {/* Past Assignments */}
@@ -184,7 +186,9 @@ export default function Assignment() {
                         className="text-sm italic font-semibold mb-1"
                         style={{ color: levelColors[assignment.level?.toLowerCase() ?? 'citronaut'] }}
                       >
-                        Level: {assignment.level?.charAt(0).toUpperCase() + assignment.level?.slice(1) ?? 'Citronaut'}
+                        Level: {assignment.level
+                          ? assignment.level.charAt(0).toUpperCase() + assignment.level.slice(1)
+                          : 'Citronaut'}
                       </p>
                       <p>{assignment.description}</p>
                       <p className="text-sm text-gray-600">Due: {assignment.due_date}</p>
