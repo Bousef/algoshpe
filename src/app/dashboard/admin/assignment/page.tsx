@@ -16,7 +16,7 @@ export default function AssignmentPage() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [showInputModal, setShowInputModal] = useState<null | { assignmentId: number }>(null);
-  const [showStudents, setShowStudents] = useState<null | any>(null); // when assigning to student
+  const [showStudents, setShowStudents] = useState<null | any>(null); 
   const [allStudents, setAllStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [modalType, setModalType] = useState<"edit" | "delete" | "create"  | "assign" | null>(null);  const [inputValue, setInputValue] = useState('');
@@ -31,13 +31,43 @@ export default function AssignmentPage() {
     hints: '',
   });
 
+  
   //call apis
+
+  //grab 
+  const {
+    data: students,
+    isLoading: isStudentsLoading,
+    error: studentsError,
+  } = api.student.getAllStudents.useQuery();
+
+  /*
+  useEffect(() => {
+    if (students) {
+      setAllStudents(students);
+    }
+  }, [students]);
+*/
+
+  if (isStudentsLoading) return <div className="animate-spin">🌀</div>;
+  if (studentsError) return <div> No Students in DB</div>;
+
+
   const {
     data: assignments = [],
     isLoading,
     isError,
     error,
   } = api.assignment.getAssignments.useQuery(); //get
+
+
+  const assignMutation = api.student.assignStudentsToAssignment.useMutation({
+    onSuccess: () => {
+      console.log("Assigned successfully!");
+      setShowStudents(null);
+      setSelectedStudents([]);
+    },
+  });
 
   const updateAssignment = api.assignment.updateAssignment.useMutation({ //update
     onSuccess: () => {
@@ -96,17 +126,6 @@ export default function AssignmentPage() {
     };
   }, []);
 
-  /*
-  const { data: studentsData } = api.student.getAllStudents.useQuery(undefined, {
-    enabled: modalType === "assign",
-    onSuccess: (students: any) => {
-      const sorted = [...students].sort((a, b) =>
-        a.first_name.localeCompare(b.first_name)
-      );
-      setAllStudents(sorted);
-      setSelectedStudents([]);
-    },
-  });*/
 
   const sortedAssignments = [...assignments].sort((a, b) => {
     const dateA = new Date(a.due_date ?? "").getTime();
@@ -325,32 +344,60 @@ export default function AssignmentPage() {
 
         {showStudents && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-md w-80">
-            <h2 className="text-lg font-semibold mb-4">
-              {modalType === "edit" ? "Edit Assignment" : "Remove Assignment"}
-            </h2>
-            {modalType === "edit" && (
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="w-full p-2 border rounded mb-4"
-                placeholder="Assignment Title"
-              />
-            )}
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setShowInputModal(null)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+          <div className="bg-white p-6 rounded shadow-md w-[90%] max-w-md max-h-[80%] overflow-auto">
+            <h2 className="text-lg font-semibold mb-4">Assign to Students</h2>
+            
+            {/* Select All Checkbox */}
+            <div className="mb-4">
+              <label className="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedStudents.length === allStudents.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedStudents(allStudents.map((s: any) => s.id));
+                    } else {
+                      setSelectedStudents([]);
+                    }
+                  }}
+                />
+                <span className="ml-2">Select All</span>
+              </label>
+            </div>
+
+            {/* List of Students */}
+            <div className="space-y-2 max-h-60 overflow-y-auto border rounded p-2">
+              {allStudents.map((student: any) => (
+                <label key={student.id} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedStudents.includes(student.id)}
+                    onChange={() => {
+                      setSelectedStudents((prev) =>
+                        prev.includes(student.id)
+                          ? prev.filter((id) => id !== student.id)
+                          : [...prev, student.id]
+                      );
+                    }}
+                  />
+                  <span className="ml-2">{student.first_name} {student.last_name}</span>
+                </label>
+              ))}
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => { setShowStudents(null); setSelectedStudents([]); }} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
               <button
-                /*onClick={() => {
-                  if (modalType === "edit") {
-                    updateAssignment.mutate({ id: showInputModal.assignmentId, title: inputValue });
-                  } else {
-                    deleteAssignment.mutate({ id: showInputModal.assignmentId });
-                  }
-                }}*/
+                onClick={() => {
+                  // Handle the assign action
+                  console.log("Assigned to students:", selectedStudents);
+                  setShowStudents(null);
+                  setSelectedStudents([]);
+                }}
                 className="px-4 py-2 bg-[#52796F] text-white rounded"
               >
-                Confirm
+                Assign
               </button>
             </div>
           </div>
@@ -385,6 +432,61 @@ export default function AssignmentPage() {
                 className="px-4 py-2 bg-[#52796F] text-white rounded"
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showStudents && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-md w-[90%] max-w-md max-h-[80%] overflow-auto">
+            <h2 className="text-lg font-semibold mb-4">Assign to Students</h2>
+            <div className="mb-4">
+              <label className="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedStudents.length === allStudents.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedStudents(allStudents.map((s: any) => s.id));
+                    } else {
+                      setSelectedStudents([]);
+                    }
+                  }}
+                />
+                <span className="ml-2">Select All</span>
+              </label>
+            </div>
+            <div className="space-y-2 max-h-60 overflow-y-auto border rounded p-2">
+              {allStudents.map((student: any) => (
+                <label key={student.id} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedStudents.includes(student.id)}
+                    onChange={() => {
+                      setSelectedStudents((prev) =>
+                        prev.includes(student.id)
+                          ? prev.filter((id) => id !== student.id)
+                          : [...prev, student.id]
+                      );
+                    }}
+                  />
+                  <span className="ml-2">{student.first_name} {student.last_name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => { setShowStudents(null); setSelectedStudents([]); }} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+              <button
+                onClick={() => {
+                  // TODO: Call assign-to-students mutation
+                  console.log("Assigning to:", selectedStudents);
+                  setShowStudents(null);
+                  setSelectedStudents([]);
+                }}
+                className="px-4 py-2 bg-[#52796F] text-white rounded"
+              >
+                Assign
               </button>
             </div>
           </div>
