@@ -14,15 +14,25 @@ export const assignmentRouter = createTRPCRouter({
         description: z.string(),
         due_date: z.date(),
         submission_ids: z.array(z.number()).optional(),
-        level: z.string()
-      })
+        level: z.string(),
+        starter_code: z.string().optional(),
+        test_cases: z.string().optional(),
+        hints: z.string().optional(),
+      })      
     )
     .mutation(async ({ input }) => {
       const formattedDueDate = input.due_date.toISOString().split('T')[0];
       const newAssignment = await db.insert(assignments).values({
-        ...input,
-        due_date: formattedDueDate 
+        title: input.title,
+        description: input.description,
+        due_date: formattedDueDate,
+        level: input.level,
+        submission_ids: input.submission_ids ?? [],
+        starter_code: input.starter_code ?? "",
+        test_cases: input.test_cases ?? "",
+        hints: input.hints ?? "",
       }).returning();
+      
       return newAssignment[0];
     }),
 
@@ -186,44 +196,59 @@ export const assignmentRouter = createTRPCRouter({
 
   //update Assignment
   updateAssignment: publicProcedure
-    .input(z.object({
-      id: z.number(),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      due_date: z.date().optional(),
-      level: z.string().optional()
-    }))
-    .mutation(async ({ input }) => {
-      const updateData: any = {};
-      if (input.title) updateData.title = input.title;
-      if (input.description) updateData.description = input.description;
-      if (input.due_date) updateData.due_date = input.due_date.toISOString().split('T')[0];
-      if (input.level) updateData.level = input.level;
+  .input(z.object({
+    id: z.number(),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    due_date: z.date().optional(),
+    level: z.string().optional(),
+    starter_code: z.string().optional(),
+    test_cases: z.string().optional(),
+    hints: z.string().optional()
+  }))
+  .mutation(async ({ input }) => {
+    const updateData: any = {};
 
-      const updatedAssignment = await db.update(assignments)
-        .set(updateData)
-        .where(eq(assignments.id, input.id))
-        .returning();
+    if (input.title) updateData.title = input.title;
+    if (input.description) updateData.description = input.description;
+    if (input.due_date) updateData.due_date = input.due_date.toISOString().split('T')[0];
+    if (input.level) updateData.level = input.level;
+    if (input.starter_code !== undefined) updateData.starter_code = input.starter_code;
+    if (input.test_cases !== undefined) updateData.test_cases = input.test_cases;
+    if (input.hints !== undefined) updateData.hints = input.hints;
 
-      if (updatedAssignment.length === 0) throw new Error("Error: Assignment Not Found");
-      return updatedAssignment[0];
-    }),
+    const updated = await db.update(assignments)
+      .set(updateData)
+      .where(eq(assignments.id, input.id))
+      .returning();
+
+    if (updated.length === 0) throw new Error("Error: Assignment Not Found");
+    return updated[0];
+  }),
 
   //delete assignment
   deleteAssignment: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      await db.execute(sql`
-        UPDATE ${students}
-        SET currentAssignments = array_remove(currentAssignments, ${input.id})
-        WHERE ${students.currentAssignments} @> ARRAY[${input.id}]
-      `);
+  .input(z.object({ id: z.number() }))
+  .mutation(async ({ input }) => {
+    await db.execute(sql`
+      UPDATE "algoshpe_student"
+      SET "currentAssignments" = array_remove("currentAssignments", ${input.id})
+      WHERE "currentAssignments" @> ARRAY[${input.id}]::int[]
+    `);
 
-      const deletedAssignment = await db.delete(assignments).where(eq(assignments.id, input.id)).returning();
+    const deletedAssignment = await db
+      .delete(assignments)
+      .where(eq(assignments.id, input.id))
+      .returning();
 
-      if (deletedAssignment.length === 0) throw new Error("Error: Assignment Not Found");
+    if (deletedAssignment.length === 0)
+      throw new Error("Error: Assignment Not Found");
 
-      return { message: "Assignment Deleted Successfully", assignment: deletedAssignment[0] };
-    }),
+    return {
+      message: "Assignment Deleted Successfully",
+      assignment: deletedAssignment[0],
+    };
+  }),
+
 
 });
