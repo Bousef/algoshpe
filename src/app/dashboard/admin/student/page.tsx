@@ -102,6 +102,11 @@ export default function StudentGridPage() {
           </div>
         </header>
         <div className="p-10">
+          {sortedStudents.length === 0 ? (
+            <div className="text-center text-xl text-gray-600 mt-10">
+              No Students in DB
+            </div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {sortedStudents.map((student) => {
               const fullName = `${student.first_name ?? ''} ${student.last_name ?? ''}`.trim() || student.username;
@@ -151,6 +156,7 @@ export default function StudentGridPage() {
               );
             })}
           </div>
+          )}
         </div>
       </div>
       {showInputModal && (

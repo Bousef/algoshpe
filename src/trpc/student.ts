@@ -72,36 +72,38 @@ export const studentRouter = createTRPCRouter({
       .orderBy(students.first_name);
   }),
 
-  //assign student to id
   assignStudentsToAssignment: publicProcedure
   .input(z.object({
     assignmentId: z.number(),
     studentIds: z.array(z.number()),
   }))
-  .mutation(async ({ input, ctx }) => {
+  .mutation(async ({ input }) => {
     const { assignmentId, studentIds } = input;
 
     await Promise.all(studentIds.map(async (studentId) => {
-      // Get the current assignments for the student
+      // Fetch the student
       const student = await db
         .select()
         .from(students)
         .where(eq(students.id, studentId));
 
-      if (student[0]!=null && student.length > 0) {
-        const updatedAssignments = [...(student[0].currentAssignments || []), assignmentId];
+        if (!student || student.length === 0 || !student[0]) {
+          return; 
+        }
 
-        // Update the student's currentAssignments
-        await db
-          .update(students)
-          .set({ currentAssignments: updatedAssignments })
-          .where(eq(students.id, studentId));
-      }
+      const existingAssignments = student[0].currentAssignments || [];
+
+      // Avoid duplicates
+      const updatedAssignments = Array.from(new Set([...existingAssignments, assignmentId]));
+
+      await db
+        .update(students)
+        .set({ currentAssignments: updatedAssignments })
+        .where(eq(students.id, studentId));
     }));
 
     return { success: true };
   }),
-
 
   //get one student by id
   getStudentById: publicProcedure
