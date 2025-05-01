@@ -103,18 +103,32 @@ export default function AssignmentDetailPage() {
       for (let i = 0; i < testCases.length; i++) {
         const match = code.match(/def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/);
         const functionName = match ? match[1] : "unknown_function";
-        const testCode = `${code}\nprint(${functionName}(${testCases[i].input}))`;
+        const testCode = `${code}\nprint(${functionName}(${JSON.stringify(testCases[i].input)}))`;
 
         await runCode.mutateAsync({ code: testCode }, {
           onSuccess: (data) => {
-            const cleanOutput = data.output.trim().replace(/\n/g, "").replace(/\s/g, "");
-            const expectedOutput = testCases[i].output.trim().replace(/\n/g, "").replace(/\s/g, "");
+            let parsedOutput = data.output.trim();
+            if (parsedOutput.startsWith("[") && parsedOutput.endsWith("]")) {
+              try {
+                const list = eval(parsedOutput); // or JSON.parse with cleanup
+                if (Array.isArray(list)) {
+                  parsedOutput = list.join(",");
+                }
+              } catch (e) {
+                // fallback: keep as is
+              }
+            }
+            
+            const cleanOutput = parsedOutput.toLowerCase().replace(/\s/g, "");
+            const expectedOutput = testCases[i].output.toString().toLowerCase().replace(/\s/g, "");
+            
             const passed = cleanOutput === expectedOutput;
-
+                     
+          
             results.push(
               `Test ${i + 1}: ${passed ? "✅ Passed" : "❌ Failed"}\nYour Output: ${data.output.trim()}\nExpected: ${testCases[i].output}`
             );
-          },
+          },          
         });
       }
 
@@ -202,8 +216,19 @@ export default function AssignmentDetailPage() {
                 {JSON.parse(assignment.test_cases || "[]").map((tc: any, i: number) => (
                   <li key={i} className="text-sm text-gray-700">
                     <p className="font-semibold">Example {i + 1}:</p>
-                    <p><strong>Input:</strong> {tc.input}</p>
-                    <p><strong>Output:</strong> {tc.output}</p>
+                    <p>
+                      <strong>Input:</strong>{" "}
+                      {Array.isArray(tc.input)
+                        ? tc.input.map((v: any) => JSON.stringify(v)).join(", ")
+                        : `n = ${tc.input}`}
+                    </p>
+                    <p>
+                      <strong>Output:</strong>{" "}
+                      {Array.isArray(tc.output)
+                        ? `[${tc.output.map((v: any) => JSON.stringify(v)).join(", ")}]`
+                        : tc.output}
+                    </p>
+
                     {tc.explanation && <p><strong>Explanation:</strong> {tc.explanation}</p>}
                   </li>
                 ))}

@@ -33,7 +33,7 @@ export default function Login() {
       }
   
       if (response?.role === 'Admin') {
-        router.push('/dashboard/admin');
+        router.push('/dashboard/admin/student');
       } else if (response?.role === 'Student') {
         router.push('/dashboard/student/assignment');
       } else {
