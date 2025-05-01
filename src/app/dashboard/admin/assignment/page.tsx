@@ -34,7 +34,7 @@ export default function AssignmentPage() {
 
   // Queries and Mutations (must be unconditionally called)
   const {
-    data: students,
+    data: students = [],
     isLoading: isStudentsLoading,
     error: studentsError,
   } = api.student.getAllStudents.useQuery();
