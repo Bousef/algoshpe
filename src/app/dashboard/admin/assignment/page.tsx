@@ -131,23 +131,17 @@ export default function AssignmentPage() {
     deleteAssignment.mutate({ id: assignmentId });
   };
 
-  // ✅ Start rendering JSX after ALL hooks are called
-  if (isStudentsLoading || isAssignmentsLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen text-2xl">
-        🌀 Loading...
-      </div>
-    );
-  }
 
-  if (studentsError || assignmentsError) {
+  if (studentsError) {
     return (
       <div className="text-red-600 text-center mt-10">
-        {studentsError ? 'Failed to load students.' : 'Failed to load assignments.'}
+        Failed to load students.
       </div>
     );
   }
-
+  
+// silently handle assignment error, still show the page
+console.error("Assignment fetch error:", assignmentsError);
 
   return (
     <div className={montserrat.className}>
@@ -212,7 +206,10 @@ export default function AssignmentPage() {
   
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {groupedAssignments[level].length === 0 ? (
-                  <p className="text-white text-center w-full">No assignments found</p>
+                  <div className="col-span-full flex justify-center items-center min-h-[120px]">
+                      <p className="text-white text-center">No assignments found</p>
+                  </div>
+
                 ) : (
                   groupedAssignments[level].map((assignment) => (
                     <div
